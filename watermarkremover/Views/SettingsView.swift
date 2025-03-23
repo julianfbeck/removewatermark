@@ -1,14 +1,17 @@
+//
+//  SettingsView.swift
+//  watermarkremover
+//
+//  Created by Julian Beck on 23.03.25.
+//
+
+
 import SwiftUI
 import RevenueCat
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var globalViewModel: GlobalViewModel
-    
-    // URLs for legal documents
-    private let privacyURL = URL(string: "https://julianbeck.notion.site/Privacy-Policy-for-VirtualTryOn-1be96d29972e80c2980fc188097002ec?pvs=4")!
-    private let termsURL = URL(string: "https://julianbeck.notion.site/VirtualTryOn-1be96d29972e8003a48bd5f6b3652936?pvs=73")!
-    private let supportURL = URL(string: "https://julianbeck.notion.site/15696d29972e80b59185e8aae36dcda0?pvs=105")!
     
     var body: some View {
         NavigationStack {
@@ -107,7 +110,7 @@ struct SettingsView: View {
                                     title: "Privacy Policy",
                                     subtitle: "How we handle your data"
                                 ) {
-                                    UIApplication.shared.open(privacyURL)
+                                    UIApplication.shared.open(Helpers.privacyPolicyURL)
                                 }
                                 
                                 SettingsRow(
@@ -116,7 +119,7 @@ struct SettingsView: View {
                                     title: "Terms of Service",
                                     subtitle: "Usage terms and conditions"
                                 ) {
-                                    UIApplication.shared.open(termsURL)
+                                    UIApplication.shared.open(Helpers.termsOfServiceURL)
                                 }
                                 
                                 SettingsRow(
@@ -125,7 +128,7 @@ struct SettingsView: View {
                                     title: "Support",
                                     subtitle: "Get help with TryOn"
                                 ) {
-                                    UIApplication.shared.open(supportURL)
+                                    UIApplication.shared.open(Helpers.supportURL)
                                 }
                             } header: {
                                 Text("Legal")

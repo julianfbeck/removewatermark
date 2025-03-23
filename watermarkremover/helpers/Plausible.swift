@@ -129,7 +129,6 @@ public class Plausible {
             "screen_width": String(format: "%.0f", screenSize.width),
             "screen_height": String(format: "%.0f", screenSize.height),
             "locale": locale.identifier,
-            "language": locale.languageCode ?? "unknown"
         ]
         
         if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {

@@ -4,14 +4,13 @@
 //
 //  Created by Julian Beck on 23.03.25.
 //
-
+import SwiftUI
 
 struct MainTabView: View {
-    @StateObject private var viewModel = TryOnViewModel()
     
     var body: some View {
         TabView {
-            TryOnView()
+            WaterMarkRemovalView()
                 .tabItem {
                     Label("Try On", systemImage: "tshirt.fill")
                 }
@@ -26,7 +25,6 @@ struct MainTabView: View {
                     Label("Settings", systemImage: "gear")
                 }
         }
-        .environmentObject(viewModel)
         .accentColor(.accentColor) // This uses the asset catalog's accent color
     }
 }

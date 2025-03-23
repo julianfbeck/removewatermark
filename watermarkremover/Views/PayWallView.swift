@@ -1,24 +1,16 @@
 //
 //  PayWallView.swift
-//  tryon
+//  watermarkremover
 //
-//  Created by Julian Beck on 21.03.25.
+//  Created by Julian Beck on 23.03.25.
 //
 
-
-//
-//  PayWallView.swift
-//  iEmoji
-//
-//  Created by Julian Beck on 02.01.25.
-//
 import RevenueCat
 import SwiftUI
 
 
 struct PayWallView: View {
-    private let privacyPolicyURL = URL(string: "https://julianbeck.notion.site/Privacy-Policy-for-VirtualTryOn-1be96d29972e80c2980fc188097002ec?pvs=4")!
-    private let termsOfServiceURL = URL(string: "https://julianbeck.notion.site/VirtualTryOn-1be96d29972e8003a48bd5f6b3652936?pvs=73")!
+
     
     @EnvironmentObject var globalViewModel: GlobalViewModel
     @Environment(\.presentationMode) var presentationMode
@@ -267,7 +259,7 @@ struct PayWallView: View {
                             .frame(height: 12)
                             .background(Color.white.opacity(0.3))
                         
-                        Link("Terms", destination: termsOfServiceURL)
+                        Link("Terms", destination: Helpers.termsOfServiceURL)
                             .font(.footnote)
                             .foregroundColor(.white)
                         
@@ -275,7 +267,7 @@ struct PayWallView: View {
                             .frame(height: 12)
                             .background(Color.white.opacity(0.3))
                         
-                        Link("Privacy", destination: privacyPolicyURL)
+                        Link("Privacy", destination: Helpers.privacyPolicyURL)
                             .font(.footnote)
                             .foregroundColor(.white)
                     }
