@@ -58,8 +58,128 @@ struct WaterMarkRemovalView: View {
                         
                         if model.isProcessing {
                             processingView
-                        } else if let processedImage = model.processedImage {
-                            processedImageView(image: processedImage)
+                        } else if let _ = model.processedImage {
+                            // Display View Result button with Reset button inline
+                            HStack(spacing: 16) {
+                                Button {
+                                    model.showResultView = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "eye")
+                                        Text("View Result")
+                                    }
+                                    .font(.system(.headline, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.accentColor)
+                                    )
+                                }
+                                .shadow(radius: 4, x: 0, y: 2)
+                                
+                                Button {
+                                    model.clearImages()
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "arrow.triangle.2.circlepath")
+                                        Text("Reset")
+                                    }
+                                    .font(.system(.headline, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.gray.opacity(0.6))
+                                    )
+                                }
+                                .shadow(radius: 4, x: 0, y: 2)
+                            }
+                            .padding(.horizontal, 4)
+                        }
+                        
+                        if let errorMessage = model.errorMessage {
+                            VStack(spacing: 16) {
+                                Text(errorMessage)
+                                    .font(.system(.subheadline, design: .rounded))
+                                    .foregroundColor(.red)
+                                    .multilineTextAlignment(.center)
+                                
+                                HStack(spacing: 16) {
+                                    Button {
+                                        if let image = model.selectedImage {
+                                            model.processImage(image)
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "arrow.clockwise")
+                                            Text("Retry")
+                                        }
+                                        .font(.system(.subheadline, design: .rounded, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.accentColor)
+                                        )
+                                    }
+                                    .disabled(model.selectedImage == nil)
+                                    .opacity(model.selectedImage == nil ? 0.5 : 1)
+                                    
+                                    Button {
+                                        model.clearImages()
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "arrow.triangle.2.circlepath")
+                                            Text("Reset")
+                                        }
+                                        .font(.system(.subheadline, design: .rounded, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.gray.opacity(0.6))
+                                        )
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.black.opacity(0.5))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(.ultraThinMaterial)
+                                    )
+                            )
+                            .shadow(radius: 8, x: 0, y: 4)
+                        }
+                        
+                        // Add reset button when an image is selected but no error or result is shown
+                        if model.selectedImage != nil && !model.isProcessing && model.errorMessage == nil && model.processedImage == nil {
+                            Button {
+                                model.clearImages()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                    Text("Reset")
+                                }
+                                .font(.system(.subheadline, design: .rounded, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.gray.opacity(0.6))
+                                )
+                            }
+                            .padding(.top, 8)
                         }
                         
                         Spacer()
@@ -67,6 +187,10 @@ struct WaterMarkRemovalView: View {
                     .padding(.horizontal)
                     .padding(.top, 40) // Increased top padding since we're hiding the nav bar
                 }
+            }
+            // Navigation to ResultView
+            .fullScreenCover(isPresented: $model.showResultView) {
+                ResultView()
             }
             // Remove navigation title and hide the navigation bar
             .navigationBarTitleDisplayMode(.inline)
@@ -208,82 +332,6 @@ struct WaterMarkRemovalView: View {
                 )
                 .shadow(radius: 8, x: 0, y: 4)
         )
-    }
-    
-    private func processedImageView(image: UIImage) -> some View {
-        VStack(spacing: 16) {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 300)
-                .cornerRadius(16)
-                .shadow(radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                )
-            
-            Text("Processed Image")
-                .font(.system(.headline, design: .rounded))
-                .foregroundColor(.white.opacity(0.9))
-            
-            HStack(spacing: 20) {
-                Button {
-                    saveImageToPhotoLibrary(image)
-                } label: {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down")
-                        Text("Save")
-                            .font(.system(.body, design: .rounded, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.accentColor)
-                    )
-                    .foregroundColor(.white)
-                    .shadow(radius: 4, x: 0, y: 2)
-                }
-                
-                Button {
-                    showImagePicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "photo")
-                        Text("New Photo")
-                            .font(.system(.body, design: .rounded, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.black.opacity(0.5))
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(.ultraThinMaterial)
-                            )
-                    )
-                    .foregroundColor(.white)
-                    .shadow(radius: 4, x: 0, y: 2)
-                }
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.black.opacity(0.5))
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial)
-                )
-                .shadow(radius: 8, x: 0, y: 4)
-        )
-    }
-    
-    private func saveImageToPhotoLibrary(_ image: UIImage) {
-        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-        showSuccessAlert = true
     }
 }
 

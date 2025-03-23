@@ -3,6 +3,7 @@ import { serveStatic } from 'hono/cloudflare-workers'
 
 interface Env {
   GOOGLE_API_KEY: string;
+  KV_STATISTICS: KVNamespace;
 }
 
 interface ImageData {
@@ -27,33 +28,212 @@ interface GeminiResponse {
   promptFeedback?: any;
 }
 
-const app = new Hono<{ Bindings: Env }>()
+interface Statistics {
+  totalRuns: number;
+  successfulRuns: number;
+  failedRuns: number;
+  lastRunTimestamp: string;
+  dailyStats: Record<string, DailyStats>;
+}
 
+interface DailyStats {
+  total: number;
+  successful: number;
+  failed: number;
+}
+
+const app = new Hono<{ Bindings: Env }>()
 app.use('/static/*', serveStatic({ root: './', manifest: {} }))
+
+// Root route - display statistics
+app.get('/', async (c) => {
+  try {
+    const stats = await getStatistics(c.env.KV_STATISTICS);
+    
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = stats.dailyStats[today] || { total: 0, successful: 0, failed: 0 };
+    
+    // Get the last 7 days for display
+    const last7Days = getLast7Days();
+    const dailyStatsHtml = last7Days.map(date => {
+      const dayStat = stats.dailyStats[date] || { total: 0, successful: 0, failed: 0 };
+      return `<tr>
+        <td>${date}</td>
+        <td>${dayStat.total}</td>
+        <td>${dayStat.successful}</td>
+        <td>${dayStat.failed}</td>
+        <td>${dayStat.total > 0 ? ((dayStat.successful / dayStat.total) * 100).toFixed(2) + '%' : 'N/A'}</td>
+      </tr>`;
+    }).join('');
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Watermark Removal Statistics</title>
+      </head>
+      <body>
+        <h1>Watermark Removal Service</h1>
+        
+        <h2>Overall Statistics</h2>
+        <ul>
+          <li>Total Runs: ${stats.totalRuns}</li>
+          <li>Successful Runs: ${stats.successfulRuns}</li>
+          <li>Failed Runs: ${stats.failedRuns}</li>
+          <li>Last Run: ${stats.lastRunTimestamp}</li>
+          <li>Success Rate: ${stats.totalRuns > 0 ? ((stats.successfulRuns / stats.totalRuns) * 100).toFixed(2) + '%' : 'N/A'}</li>
+        </ul>
+        
+        <h2>Today's Statistics (${today})</h2>
+        <ul>
+          <li>Total Runs Today: ${todayStats.total}</li>
+          <li>Successful Runs Today: ${todayStats.successful}</li>
+          <li>Failed Runs Today: ${todayStats.failed}</li>
+          <li>Today's Success Rate: ${todayStats.total > 0 ? ((todayStats.successful / todayStats.total) * 100).toFixed(2) + '%' : 'N/A'}</li>
+        </ul>
+        
+        <h2>Daily Statistics (Last 7 Days)</h2>
+        <table border="1">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Successful</th>
+              <th>Failed</th>
+              <th>Success Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${dailyStatsHtml}
+          </tbody>
+        </table>
+        
+        <h2>Upload an Image</h2>
+        <form id="uploadForm">
+          <input type="file" id="imageInput" accept="image/*">
+          <button type="submit">Remove Watermark</button>
+        </form>
+        <div id="result"></div>
+        
+        <script>
+          document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('imageInput');
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+              resultDiv.innerHTML = '<p>Please select an image</p>';
+              return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async () => {
+              const base64Data = reader.result.toString().split(',')[1];
+              
+              resultDiv.innerHTML = '<p>Processing...</p>';
+              
+              try {
+                const response = await fetch('/api/remove-watermark', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    image: {
+                      data: base64Data,
+                      mime_type: file.type
+                    }
+                  })
+                });
+                
+                if (!response.ok) {
+                  const error = await response.json();
+                  resultDiv.innerHTML = '<p>Error: ' + (error.error || 'Unknown error') + '</p>';
+                  return;
+                }
+                
+                const blob = await response.blob();
+                const imgUrl = URL.createObjectURL(blob);
+                
+                resultDiv.innerHTML = '<h3>Result:</h3><img src="' + imgUrl + '" style="max-width: 100%;">';
+                
+                // Refresh the page after 2 seconds to update statistics
+                setTimeout(() => {
+                  window.location.reload();
+                }, 2000);
+              } catch (error) {
+                resultDiv.innerHTML = '<p>Error: ' + error.message + '</p>';
+              }
+            };
+            
+            reader.readAsDataURL(file);
+          });
+        </script>
+      </body>
+      </html>
+    `;
+    
+    return c.html(html);
+  } catch (error) {
+    return c.text('Error loading statistics: ' + error.message, 500);
+  }
+});
+
+// API endpoint for statistics
+app.get('/api/stats', async (c) => {
+  try {
+    const stats = await getStatistics(c.env.KV_STATISTICS);
+    return c.json(stats);
+  } catch (error: any) {
+    console.error('Error retrieving statistics:', error);
+    return c.json({
+      error: 'Failed to retrieve statistics',
+      details: error?.message
+    }, 500);
+  }
+})
 
 // API endpoint for watermark removal
 app.post('/api/remove-watermark', async (c) => {
   try {
     const body = await c.req.json<RequestBody>()
     const { image } = body
-
+    
+    // Update total runs counter
+    await incrementStatCounter(c.env.KV_STATISTICS, 'totalRuns');
+    await updateLastRunTimestamp(c.env.KV_STATISTICS);
+    
+    // Update daily statistics - total
+    await incrementDailyCounter(c.env.KV_STATISTICS, 'total');
+    
     if (!image?.data) {
       console.error('Missing required image:', {
         hasImage: !!image?.data
       })
+      // Increment failed runs counter
+      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
+      // Update daily statistics - failed
+      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
       throw new Error('Image is required')
     }
-
+    
     console.log('Processing image:', {
       imageType: image.mime_type,
       imageDataLength: image.data.length
     })
-
+    
     const apiKey = c.env?.GOOGLE_API_KEY
     if (!apiKey) {
+      // Increment failed runs counter
+      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
+      // Update daily statistics - failed
+      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
       throw new Error('API key not configured')
     }
-
+    
     // Make the API request to Gemini
     const requestBody = {
       contents: [{
@@ -71,16 +251,15 @@ app.post('/api/remove-watermark', async (c) => {
         ]
       }],
       generationConfig: {
-        temperature: 0.4, // Lower temperature for more consistent results
-        topP: 0.8,
-        topK: 32,
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
         maxOutputTokens: 8192,
         responseModalities: ["Text", "Image"]
       }
     }
-
+    
     const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=' + apiKey
-
     const response = await fetch(
       apiUrl,
       {
@@ -91,7 +270,7 @@ app.post('/api/remove-watermark', async (c) => {
         body: JSON.stringify(requestBody)
       }
     )
-
+    
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Gemini API error:', {
@@ -99,35 +278,50 @@ app.post('/api/remove-watermark', async (c) => {
         statusText: response.statusText,
         error: errorText
       })
+      // Increment failed runs counter
+      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
+      // Update daily statistics - failed
+      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
       throw new Error(`Failed to process image: ${response.status} ${response.statusText}`)
     }
-
+    
     const data = await response.json()
     const responseData = data as GeminiResponse
-
+    
     // Extract the image data
     const base64Image = responseData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data
     if (!base64Image) {
+      // Increment failed runs counter
+      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
+      // Update daily statistics - failed
+      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
+      //log other response data
+      console.log('Other response data:', data)
       throw new Error('No image data in response')
-    }
 
+    }
+    
     // Convert base64 to blob
     const binaryData = atob(base64Image)
     const uint8Array = new Uint8Array(binaryData.length)
     for (let i = 0; i < binaryData.length; i++) {
       uint8Array[i] = binaryData.charCodeAt(i)
     }
-
     const blob = new Blob([uint8Array], { type: 'image/png' })
+    
     console.log('Created processed image blob:', {
       size: blob.size,
       type: blob.type
     })
-
+    
+    // Increment successful runs counter
+    await incrementStatCounter(c.env.KV_STATISTICS, 'successfulRuns');
+    // Update daily statistics - successful
+    await incrementDailyCounter(c.env.KV_STATISTICS, 'successful');
+    
     return new Response(blob, {
       headers: { 'Content-Type': 'image/png' }
     })
-
   } catch (error: any) {
     console.error('Error in /api/remove-watermark:', {
       message: error?.message,
@@ -140,5 +334,79 @@ app.post('/api/remove-watermark', async (c) => {
     }, 500)
   }
 })
+
+// Helper functions for statistics
+async function getStatistics(kv: KVNamespace): Promise<Statistics> {
+  // Try to get existing stats
+  const statsString = await kv.get('statistics');
+  
+  if (statsString) {
+    const stats = JSON.parse(statsString);
+    // Ensure dailyStats exists
+    if (!stats.dailyStats) {
+      stats.dailyStats = {};
+    }
+    return stats;
+  }
+  
+  // Initialize stats if they don't exist
+  const defaultStats: Statistics = {
+    totalRuns: 0,
+    successfulRuns: 0,
+    failedRuns: 0,
+    lastRunTimestamp: new Date().toISOString(),
+    dailyStats: {}
+  };
+  
+  await kv.put('statistics', JSON.stringify(defaultStats));
+  return defaultStats;
+}
+
+async function incrementStatCounter(kv: KVNamespace, counterName: keyof Statistics): Promise<void> {
+  const stats = await getStatistics(kv);
+  
+  if (typeof stats[counterName] === 'number') {
+    stats[counterName] = (stats[counterName] as number) + 1;
+    await kv.put('statistics', JSON.stringify(stats));
+  }
+}
+
+async function updateLastRunTimestamp(kv: KVNamespace): Promise<void> {
+  const stats = await getStatistics(kv);
+  stats.lastRunTimestamp = new Date().toISOString();
+  await kv.put('statistics', JSON.stringify(stats));
+}
+
+// Function to increment daily counters
+async function incrementDailyCounter(kv: KVNamespace, counterType: keyof DailyStats): Promise<void> {
+  const stats = await getStatistics(kv);
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  
+  // Initialize today's stats if they don't exist
+  if (!stats.dailyStats[today]) {
+    stats.dailyStats[today] = {
+      total: 0,
+      successful: 0,
+      failed: 0
+    };
+  }
+  
+  // Increment the specified counter
+  stats.dailyStats[today][counterType]++;
+  
+  // Save updated stats
+  await kv.put('statistics', JSON.stringify(stats));
+}
+
+// Helper function to get the last 7 days in YYYY-MM-DD format
+function getLast7Days(): string[] {
+  const result = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    result.push(date.toISOString().split('T')[0]);
+  }
+  return result;
+}
 
 export default app
