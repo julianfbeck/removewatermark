@@ -19,12 +19,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("History", systemImage: "clock.fill")
                 }
-            
+//            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
         }
-        .accentColor(.accentColor) // This uses the asset catalog's accent color
     }
 }

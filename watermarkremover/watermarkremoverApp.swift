@@ -20,7 +20,6 @@ struct watermarkremoverApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .accentColor(Color.accentColor)
                 .environmentObject(globalViewModel)
                 .environmentObject(wmrm)
                 

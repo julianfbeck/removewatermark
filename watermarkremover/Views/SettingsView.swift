@@ -10,7 +10,6 @@ import SwiftUI
 import RevenueCat
 
 struct SettingsView: View {
-    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var globalViewModel: GlobalViewModel
     
     var body: some View {

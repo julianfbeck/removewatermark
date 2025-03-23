@@ -289,6 +289,6 @@ struct WaterMarkRemovalView: View {
 
 #Preview {
     WaterMarkRemovalView()
-        .environmentObject(WaterMarkRemovalModel())
-        .environmentObject(GlobalViewModel())
+//        .environmentObject(WaterMarkRemovalModel())
+//        .environmentObject(GlobalViewModel())
 }
