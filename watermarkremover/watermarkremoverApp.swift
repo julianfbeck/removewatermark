@@ -20,10 +20,13 @@ struct watermarkremoverApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .accentColor(Color.accentColor)
                 .environmentObject(globalViewModel)
                 .environmentObject(wmrm)
+                
                 .onAppear {
-                    Plausible.shared.configure(domain: "tryon.juli.sh", endpoint: "https://stats.juli.sh/api/event")
+                    
+//                    Plausible.shared.configure(domain: "tryon.juli.sh", endpoint: "https://stats.juli.sh/api/event")
                 }
         }
     }
