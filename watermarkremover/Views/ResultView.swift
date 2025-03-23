@@ -34,7 +34,7 @@ struct ResultView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundColor(.white)
                     }
@@ -158,37 +158,44 @@ struct ComparisonView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Original image
-                Image(uiImage: originalImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
+            ZStack {
+                // Container for both images
+                ZStack(alignment: .leading) {
+                    // Original image (full width, visible on left side)
+                    Image(uiImage: originalImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                    
+                    // Processed image (masked to show only right side)
+                    Image(uiImage: processedImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .mask(
+                            HStack(spacing: 0) {
+                                Rectangle()
+                                    .frame(width: geometry.size.width * sliderPosition)
+                                    .opacity(0) // Make left side transparent
+                                Rectangle()
+                                    .frame(width: geometry.size.width * (1 - sliderPosition))
+                            }
+                        )
+                }
                 
-                // Processed image with mask
-                Image(uiImage: processedImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .mask(
-                        Rectangle()
-                            .frame(width: geometry.size.width * sliderPosition)
-                    )
-                
-                // Divider
+                // Divider line
                 Rectangle()
                     .fill(Color.white)
                     .frame(width: 2, height: geometry.size.height)
-                    .offset(x: geometry.size.width * sliderPosition - 1)
+                    .position(x: geometry.size.width * sliderPosition, y: geometry.size.height / 2)
                 
                 // Slider handle
                 Circle()
                     .fill(Color.white)
                     .frame(width: 28, height: 28)
                     .shadow(radius: 2)
-                    .offset(x: geometry.size.width * sliderPosition - 14)
                     .overlay(
                         HStack(spacing: 0) {
                             Image(systemName: "arrow.left")
@@ -197,35 +204,45 @@ struct ComparisonView: View {
                                 .font(.system(size: 10, weight: .bold))
                         }
                         .foregroundColor(.accentColor)
-                        .offset(x: geometry.size.width * sliderPosition - 14)
                     )
+                    .position(x: geometry.size.width * sliderPosition, y: geometry.size.height / 2)
                 
                 // Labels
-                ZStack {
-                    Text("Original")
-                        .font(.system(.caption, design: .rounded, weight: .bold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.black.opacity(0.6))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .offset(x: min(geometry.size.width * 0.25, geometry.size.width * sliderPosition - 40), y: -geometry.size.height * 0.4)
+                VStack {
+                    HStack {
+                        // Original label
+                        Text("Original")
+                            .font(.system(.subheadline, design: .rounded, weight: .bold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.black.opacity(0.7))
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .offset(x: geometry.size.width * 0.25 - 35)
+                        
+                        Spacer()
+                        
+                        // Processed label
+                        Text("Processed")
+                            .font(.system(.subheadline, design: .rounded, weight: .bold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.black.opacity(0.7))
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .offset(x: -geometry.size.width * 0.25 + 40)
+                    }
+                    .frame(width: geometry.size.width)
+                    .padding(.top, 20)
                     
-                    Text("Processed")
-                        .font(.system(.caption, design: .rounded, weight: .bold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.black.opacity(0.6))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .offset(x: max(geometry.size.width * 0.75, geometry.size.width * sliderPosition + 40), y: -geometry.size.height * 0.4)
+                    Spacer()
                 }
                 
                 // Gesture area
                 Color.clear
                     .contentShape(Rectangle())
                     .gesture(
-                        DragGesture()
+                        DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 let newPosition = value.location.x / geometry.size.width
                                 sliderPosition = min(max(newPosition, 0), 1)
