@@ -49,6 +49,7 @@ class WaterMarkRemovalModel: ObservableObject {
         processedImage = nil
         errorMessage = nil
         showResultView = false
+        isProcessing = false
     }
     
     private func removeWatermark(from image: UIImage) async throws -> UIImage {

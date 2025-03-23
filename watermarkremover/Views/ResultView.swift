@@ -117,11 +117,11 @@ struct ResultView: View {
                                 ActionButton(
                                     title: "New Image",
                                     icon: "photo",
-                                    backgroundColor: Color.black.opacity(0.4)
-                                ) {
-                                    model.clearImages()
-                                    dismiss()
-                                }
+                                    backgroundColor: Color.black.opacity(0.4),
+                                    action:  {
+                                        model.clearImages()
+                                        dismiss()
+                                    }, showBorder: true)
                             }
                         } else {
                             Text("No processed image available")
@@ -241,27 +241,33 @@ struct ActionButton: View {
     let icon: String
     let backgroundColor: Color
     let action: () -> Void
+    var showBorder: Bool = false
     
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 10) {
                 Image(systemName: icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .frame(width: 24, height: 24)
                 Text(title)
-                    .font(.system(.body, design: .rounded, weight: .medium))
+                    .font(.system(.body, design: .rounded, weight: .bold))
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 25)
                     .fill(backgroundColor)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial)
+                    .overlay(
+                        showBorder ?
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
+                            : nil
                     )
             )
             .foregroundColor(.white)
             .shadow(radius: 4, x: 0, y: 2)
         }
+        .frame(height: 56) // Fixed height for all buttons
     }
 }
 

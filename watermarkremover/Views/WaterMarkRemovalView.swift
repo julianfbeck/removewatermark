@@ -60,46 +60,45 @@ struct WaterMarkRemovalView: View {
                             processingView
                         } else if let _ = model.processedImage {
                             // Display View Result button with Reset button inline
-                            HStack(spacing: 16) {
+                            HStack(spacing: 15) {
                                 Button {
                                     model.showResultView = true
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: 10) {
                                         Image(systemName: "eye")
+                                            .font(.system(size: 18))
                                         Text("View Result")
+                                            .font(.system(.body, design: .rounded, weight: .medium))
                                     }
-                                    .font(.system(.headline, design: .rounded))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
                                     .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16)
+                                        RoundedRectangle(cornerRadius: 25)
                                             .fill(Color.accentColor)
                                     )
+                                    .foregroundColor(.white)
                                 }
                                 .shadow(radius: 4, x: 0, y: 2)
                                 
                                 Button {
                                     model.clearImages()
                                 } label: {
-                                    HStack {
-                                        Image(systemName: "arrow.triangle.2.circlepath")
-                                        Text("Reset")
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "photo")
+                                            .font(.system(size: 18))
+                                        Text("New Image")
+                                            .font(.system(.body, design: .rounded, weight: .medium))
                                     }
-                                    .font(.system(.headline, design: .rounded))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
                                     .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color.gray.opacity(0.6))
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .fill(Color.black.opacity(0.4))
                                     )
+                                    .foregroundColor(.white)
                                 }
                                 .shadow(radius: 4, x: 0, y: 2)
                             }
-                            .padding(.horizontal, 4)
                         }
                         
                         if let errorMessage = model.errorMessage {
