@@ -220,7 +220,8 @@ struct WaterMarkRemovalView: View {
                        let uiImage = UIImage(data: data) {
                         await MainActor.run {
                             model.selectedImage = uiImage
-                            model.processImage(uiImage)
+                            // Remove automatic processing
+                            // model.processImage(uiImage)
                         }
                     }
                 }
@@ -261,6 +262,54 @@ struct WaterMarkRemovalView: View {
                     .foregroundColor(.white.opacity(0.9))
             } else {
                 selectImageButton
+            }
+            
+            // Always show the custom removal input field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("What to remove:")
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+                
+                TextField("Enter what to remove", text: $model.removalText)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.ultraThinMaterial)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                    )
+                    .font(.system(.body, design: .rounded))
+                    .foregroundColor(.white)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+            }
+            .padding(.top, 8)
+            
+            // Add start removal button
+            if model.selectedImage != nil && !model.isProcessing {
+                Button {
+                    if let image = model.selectedImage {
+                        model.processImage(image)
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 18))
+                        Text("Start Removal")
+                            .font(.system(.body, design: .rounded, weight: .medium))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.accentColor)
+                    )
+                    .foregroundColor(.white)
+                }
+                .shadow(radius: 4, x: 0, y: 2)
+                .padding(.top, 8)
             }
         }
         .padding()

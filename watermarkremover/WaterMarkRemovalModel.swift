@@ -18,6 +18,7 @@ class WaterMarkRemovalModel: ObservableObject {
     @Published var isProcessing = false
     @Published var errorMessage: String?
     @Published var showResultView = false
+    @Published var removalText = "watermarks"
     
     private let serverURL = "https://watermark-remover.app.juli.sh/api/remove-watermark"
     
@@ -65,7 +66,8 @@ class WaterMarkRemovalModel: ObservableObject {
             "image": [
                 "data": base64String,
                 "mime_type": "image/jpeg"
-            ]
+            ],
+            "removalText": removalText
         ]
         
         // Convert request body to JSON data

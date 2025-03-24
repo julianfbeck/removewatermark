@@ -6,7 +6,11 @@
 //
 
 import Foundation
+#if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 public enum PlausibleError: Error {
     case domainNotSet
@@ -118,18 +122,36 @@ public class Plausible {
     }
     
     private func gatherDeviceInfo() -> [String: String] {
+        var info: [String: String] = [:]
+        
+        #if os(iOS)
         let device = UIDevice.current
         let screenSize = UIScreen.main.bounds.size
-        let locale = Locale.current
         
-        var info: [String: String] = [
+        info = [
+            "os": "iOS",
             "os_version": device.systemVersion,
             "device_model": device.model,
             "device_name": device.name,
             "screen_width": String(format: "%.0f", screenSize.width),
             "screen_height": String(format: "%.0f", screenSize.height),
-            "locale": locale.identifier,
         ]
+        #elseif os(macOS)
+        let screenSize = NSScreen.main?.frame.size ?? CGSize(width: 0, height: 0)
+        
+        info = [
+            "os": "macOS",
+            "os_version": ProcessInfo.processInfo.operatingSystemVersionString,
+            "device_model": "Mac",
+            "device_name": Host.current().localizedName ?? "Mac",
+            "screen_width": String(format: "%.0f", screenSize.width),
+            "screen_height": String(format: "%.0f", screenSize.height),
+        ]
+        #endif
+        
+        // Common properties for both platforms
+        let locale = Locale.current
+        info["locale"] = locale.identifier
         
         if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             info["app_version"] = appVersion
