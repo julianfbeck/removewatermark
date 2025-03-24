@@ -18,7 +18,7 @@ class WaterMarkRemovalModel: ObservableObject {
     @Published var isProcessing = false
     @Published var errorMessage: String?
     @Published var showResultView = false
-    @Published var removalText = "watermarks"
+    @Published var removalText = "unwanted elements"
     
     private let serverURL = "https://watermark-remover.app.juli.sh/api/remove-watermark"
     
@@ -55,7 +55,7 @@ class WaterMarkRemovalModel: ObservableObject {
     
     private func removeWatermark(from image: UIImage) async throws -> UIImage {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw NSError(domain: "WaterMarkRemoval", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
+            throw NSError(domain: "Untag", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])
         }
         
         // Convert UIImage to base64 string
@@ -72,12 +72,12 @@ class WaterMarkRemovalModel: ObservableObject {
         
         // Convert request body to JSON data
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
-            throw NSError(domain: "WaterMarkRemoval", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize request"])
+            throw NSError(domain: "Untag", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize request"])
         }
         
         // Create URL request
         guard let url = URL(string: serverURL) else {
-            throw NSError(domain: "WaterMarkRemoval", code: 3, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
+            throw NSError(domain: "Untag", code: 3, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
         
         var request = URLRequest(url: url)
@@ -92,7 +92,7 @@ class WaterMarkRemovalModel: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw NSError(domain: "WaterMarkRemoval", code: 4, userInfo: [
+            throw NSError(domain: "Untag", code: 4, userInfo: [
                 NSLocalizedDescriptionKey: "Server returned error: \(statusCode)",
                 "serverResponse": errorMessage
             ])
@@ -100,7 +100,7 @@ class WaterMarkRemovalModel: ObservableObject {
         
         // Create UIImage from response data
         guard let processedImage = UIImage(data: data) else {
-            throw NSError(domain: "WaterMarkRemoval", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from response data"])
+            throw NSError(domain: "Untag", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from response data"])
         }
         
         return processedImage
