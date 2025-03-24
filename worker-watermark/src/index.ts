@@ -72,7 +72,7 @@ app.get('/', async (c) => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Watermark Removal Statistics</title>
+        <title>Untag - Remove Unwanted Elements</title>
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -106,7 +106,7 @@ app.get('/', async (c) => {
         </style>
       </head>
       <body>
-        <h1>Watermark Removal Service</h1>
+        <h1>Untag - Remove Unwanted Elements</h1>
         
         <h2>Overall Statistics</h2>
         <ul>
@@ -151,7 +151,7 @@ app.get('/', async (c) => {
             <label for="removalTextInput">What to remove:</label>
             <input type="text" id="removalTextInput" value="watermarks" placeholder="e.g., watermarks, logos, text">
           </div>
-          <button type="submit">Remove from Image</button>
+          <button type="submit">Untag Image</button>
         </form>
         <div id="result"></div>
         

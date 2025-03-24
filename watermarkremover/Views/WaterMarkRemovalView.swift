@@ -231,11 +231,11 @@ struct WaterMarkRemovalView: View {
     
     private var headerView: some View {
         VStack(spacing: 12) {
-            Text("Remove Watermarks")
+            Text("Untag Photos")
                 .font(.system(.largeTitle, design: .rounded, weight: .bold))
                 .foregroundColor(.white)
             
-            Text("Select an image to remove watermarks from your photos")
+            Text("Select an image to remove unwanted elements from your photos")
                 .font(.system(.subheadline, design: .rounded))
                 .multilineTextAlignment(.center)
                 .foregroundColor(.white.opacity(0.85))
@@ -365,7 +365,7 @@ struct WaterMarkRemovalView: View {
                 .scaleEffect(1.5)
                 .tint(.white)
             
-            Text("Removing watermark...")
+            Text("Untagging photo...")
                 .font(.system(.headline, design: .rounded))
                 .foregroundColor(.white)
         }
