@@ -9,21 +9,22 @@ import SwiftUI
 struct MainTabView: View {
     
     var body: some View {
-        TabView {
+
             WaterMarkRemovalView()
-                .tabItem {
-                    Label("Try On", systemImage: "tshirt.fill")
-                }
+//         TabView {
+//                 .tabItem {
+//                     Label("Try On", systemImage: "tshirt.fill")
+//                 }
             
-            HistoryView()
-                .tabItem {
-                    Label("History", systemImage: "clock.fill")
-                }
-//            
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
-                }
-        }
+//             HistoryView()
+//                 .tabItem {
+//                     Label("History", systemImage: "clock.fill")
+//                 }
+// //            
+//             SettingsView()
+//                 .tabItem {
+//                     Label("Settings", systemImage: "gear")
+//                 }
+//         }
     }
 }

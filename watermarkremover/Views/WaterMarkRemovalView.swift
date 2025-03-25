@@ -260,56 +260,60 @@ struct WaterMarkRemovalView: View {
                 Text("Original Image")
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
+                
+                if model.errorMessage != nil {
+                    errorView
+                } else {
+                    // Always show the custom removal input field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("What to remove:")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundColor(.white.opacity(0.9))
+                        
+                        TextField("Enter what to remove", text: $model.removalText)
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.ultraThinMaterial)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                            )
+                            .font(.system(.body, design: .rounded))
+                            .foregroundColor(.white)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                    }
+                    .padding(.top, 8)
+                    
+                    // Add start removal button
+                    if !model.isProcessing {
+                        Button {
+                            if let image = model.selectedImage {
+                                model.processImage(image)
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "wand.and.stars")
+                                    .font(.system(size: 18))
+                                Text("Start Removal")
+                                    .font(.system(.body, design: .rounded, weight: .medium))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color.accentColor)
+                            )
+                            .foregroundColor(.white)
+                        }
+                        .shadow(radius: 4, x: 0, y: 2)
+                        .padding(.top, 8)
+                    }
+                }
             } else {
                 selectImageButton
-            }
-            
-            // Always show the custom removal input field
-            VStack(alignment: .leading, spacing: 8) {
-                Text("What to remove:")
-                    .font(.system(.subheadline, design: .rounded))
-                    .foregroundColor(.white.opacity(0.9))
-                
-                TextField("Enter what to remove", text: $model.removalText)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.ultraThinMaterial)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                    )
-                    .font(.system(.body, design: .rounded))
-                    .foregroundColor(.white)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-            }
-            .padding(.top, 8)
-            
-            // Add start removal button
-            if model.selectedImage != nil && !model.isProcessing {
-                Button {
-                    if let image = model.selectedImage {
-                        model.processImage(image)
-                    }
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "wand.and.stars")
-                            .font(.system(size: 18))
-                        Text("Start Removal")
-                            .font(.system(.body, design: .rounded, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.accentColor)
-                    )
-                    .foregroundColor(.white)
-                }
-                .shadow(radius: 4, x: 0, y: 2)
-                .padding(.top, 8)
             }
         }
         .padding()
@@ -371,15 +375,82 @@ struct WaterMarkRemovalView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
+        .background(errorBackgroundStyle)
+    }
+    
+    private var errorView: some View {
+        VStack(spacing: 24) {
+            // Error icon and heading
+            VStack(spacing: 16) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundColor(.red)
+                
+                Text("Something Went Wrong")
+                    .font(.system(.title2, design: .rounded, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("Failed to process image: cancelled")
+                    .font(.system(.body, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            
+            // Action buttons
+            HStack(spacing: 16) {
+                Button {
+                    if let image = model.selectedImage {
+                        model.processImage(image)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Try Again")
+                    }
+                    .font(.system(.body, design: .rounded, weight: .medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.purple)
+                    )
+                    .foregroundColor(.white)
+                }
+                
+                Button {
+                    model.clearImages()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text("Reset")
+                    }
+                    .font(.system(.body, design: .rounded, weight: .medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.gray.opacity(0.3))
+                    )
+                    .foregroundColor(.white)
+                }
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.black.opacity(0.5))
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
-                )
-                .shadow(radius: 8, x: 0, y: 4)
+                .fill(Color.black.opacity(0.95))
         )
+    }
+    
+    private var errorBackgroundStyle: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Color.black.opacity(0.7))
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+            )
+            .shadow(radius: 8, x: 0, y: 4)
     }
 }
 
