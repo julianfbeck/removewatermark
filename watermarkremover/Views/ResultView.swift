@@ -50,29 +50,18 @@ struct ResultView: View {
                     
                     Spacer()
                     
-                    // Retry button when processing failed
-                    if model.errorMessage != nil {
-                        Button {
-                            if let image = model.selectedImage {
-                                model.processImage(image)
-                            }
-                        } label: {
-                            Image(systemName: "arrow.clockwise.circle.fill")
-                                .font(.system(size: 24, weight: .semibold))
-                                .foregroundColor(.white)
+                    // Always show retry button
+                    Button {
+                        if let image = model.selectedImage {
+                            model.processImage(image)
                         }
-                    } else {
-                        // Share button when processing succeeded
-                        Button {
-                            showShareSheet = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
-                        }
-                        .disabled(model.isProcessing || model.processedImage == nil)
-                        .opacity(model.isProcessing || model.processedImage == nil ? 0.5 : 1)
+                    } label: {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundColor(.white)
                     }
+                    .disabled(model.isProcessing || model.selectedImage == nil)
+                    .opacity(model.isProcessing || model.selectedImage == nil ? 0.5 : 1)
                 }
                 .padding(.horizontal)
                 .padding(.top, 20)
@@ -200,12 +189,11 @@ struct ResultView: View {
                                 }
                                 
                                 ActionButton(
-                                    title: "New Image",
-                                    icon: "photo",
+                                    title: "Share",
+                                    icon: "square.and.arrow.up",
                                     backgroundColor: Color.black.opacity(0.4),
                                     action:  {
-                                        model.clearImages()
-                                        dismiss()
+                                        showShareSheet = true
                                     }, showBorder: true)
                             }
                         } 
