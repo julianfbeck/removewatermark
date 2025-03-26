@@ -5,7 +5,6 @@
 //  Created by Julian Beck on 23.03.25.
 //
 
-
 import Foundation
 import SwiftUI
 import os.log

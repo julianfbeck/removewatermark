@@ -303,4 +303,3 @@ struct ShareSheet: UIViewControllerRepresentable {
     ResultView()
         .environmentObject(WaterMarkRemovalModel())
 }
-

@@ -347,7 +347,7 @@ struct WaterMarkRemovalView: View {
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.accentColor, 
+                                Color.accentColor,
                                 Color.accentColor.opacity(0.7)
                             ]),
                             startPoint: .topLeading,
