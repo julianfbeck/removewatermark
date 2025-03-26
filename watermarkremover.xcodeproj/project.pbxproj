@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9AB5916E2D93432B00F6E96A /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9AB5916D2D93432B00F6E96A /* ConfettiSwiftUI */; };
 		9AED28722D8E077E00A0EEB7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 9AED28712D8E077E00A0EEB7 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AB5916E2D93432B00F6E96A /* ConfettiSwiftUI in Frameworks */,
 				9AED28722D8E077E00A0EEB7 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +73,7 @@
 			name = watermarkremover;
 			packageProductDependencies = (
 				9AED28712D8E077E00A0EEB7 /* RevenueCat */,
+				9AB5916D2D93432B00F6E96A /* ConfettiSwiftUI */,
 			);
 			productName = watermarkremover;
 			productReference = 9AED285F2D8E06F900A0EEB7 /* watermarkremover.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9AED28702D8E077E00A0EEB7 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				9AB5916C2D93432B00F6E96A /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9AED28602D8E06F900A0EEB7 /* Products */;
@@ -347,6 +351,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9AB5916C2D93432B00F6E96A /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.2;
+			};
+		};
 		9AED28702D8E077E00A0EEB7 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/RevenueCat/purchases-ios/";
@@ -358,6 +370,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9AB5916D2D93432B00F6E96A /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9AB5916C2D93432B00F6E96A /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
+		};
 		9AED28712D8E077E00A0EEB7 /* RevenueCat */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9AED28702D8E077E00A0EEB7 /* XCRemoteSwiftPackageReference "purchases-ios" */;
