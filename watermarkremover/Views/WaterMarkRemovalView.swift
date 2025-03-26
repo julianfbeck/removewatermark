@@ -287,30 +287,28 @@ struct WaterMarkRemovalView: View {
                     }
                     .padding(.top, 8)
                     
-                    // Add start removal button
-                    if !model.isProcessing {
-                        Button {
-                            if let image = model.selectedImage {
-                                model.processImage(image)
-                            }
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "wand.and.stars")
-                                    .font(.system(size: 18))
-                                Text("Start Removal")
-                                    .font(.system(.body, design: .rounded, weight: .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color.accentColor)
-                            )
-                            .foregroundColor(.white)
+                    // Start removal button
+                    Button {
+                        if let image = model.selectedImage {
+                            model.processImage(image)
                         }
-                        .shadow(radius: 4, x: 0, y: 2)
-                        .padding(.top, 8)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "wand.and.stars")
+                                .font(.system(size: 18))
+                            Text("Start Removal")
+                                .font(.system(.body, design: .rounded, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(Color.accentColor)
+                        )
+                        .foregroundColor(.white)
                     }
+                    .shadow(radius: 4, x: 0, y: 2)
+                    .padding(.top, 8)
                 }
             } else {
                 selectImageButton
@@ -347,7 +345,7 @@ struct WaterMarkRemovalView: View {
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.accentColor,
+                                Color.accentColor, 
                                 Color.accentColor.opacity(0.7)
                             ]),
                             startPoint: .topLeading,

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ConfettiSwiftUI
 
 struct ResultView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +14,8 @@ struct ResultView: View {
     
     @State private var showComparison = false
     @State private var showShareSheet = false
+    @State private var confettiTrigger = 0
+    @State private var scale: CGFloat = 1.0
     
     var body: some View {
         ZStack {
@@ -47,12 +50,28 @@ struct ResultView: View {
                     
                     Spacer()
                     
-                    Button {
-                        showShareSheet = true
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
+                    // Retry button when processing failed
+                    if model.errorMessage != nil {
+                        Button {
+                            if let image = model.selectedImage {
+                                model.processImage(image)
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    } else {
+                        // Share button when processing succeeded
+                        Button {
+                            showShareSheet = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .disabled(model.isProcessing || model.processedImage == nil)
+                        .opacity(model.isProcessing || model.processedImage == nil ? 0.5 : 1)
                     }
                 }
                 .padding(.horizontal)
@@ -60,27 +79,93 @@ struct ResultView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Image viewer
-                        if let processedImage = model.processedImage {
-                            if showComparison, let originalImage = model.selectedImage {
-                                ComparisonView(
-                                    originalImage: originalImage,
-                                    processedImage: processedImage
-                                )
-                                .frame(height: 400)
-                                .cornerRadius(16)
-                                .shadow(radius: 10, x: 0, y: 5)
+                        // Processing State
+                        if model.isProcessing {
+                            if let originalImage = model.selectedImage {
+                                // Show pulsing blurred original image during processing
+                                ZStack {
+                                    Image(uiImage: originalImage)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(maxHeight: 400)
+                                        .cornerRadius(16)
+                                        .blur(radius: 10)
+                                        .scaleEffect(scale)
+                                        .animation(
+                                            Animation.easeInOut(duration: 1.5)
+                                                .repeatForever(autoreverses: true),
+                                            value: scale
+                                        )
+                                        .onAppear {
+                                            scale = 1.05
+                                        }
+                                    
+                                    // Loading spinner
+                                    VStack {
+                                        ProgressView()
+                                            .scaleEffect(2)
+                                            .tint(.white)
+                                        
+                                        Text("Removing Watermark...")
+                                            .font(.system(.headline, design: .rounded))
+                                            .foregroundColor(.white)
+                                            .padding(.top, 20)
+                                    }
+                                    .padding(30)
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(20)
+                                }
                             } else {
-                                Image(uiImage: processedImage)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxHeight: 400)
+                                ProgressView()
+                                    .scaleEffect(2)
+                                    .tint(.white)
+                            }
+                        }
+                        // Result State
+                        else if let processedImage = model.processedImage {
+                            ZStack {
+                                // Image content
+                                if showComparison, let originalImage = model.selectedImage {
+                                    ComparisonView(
+                                        originalImage: originalImage,
+                                        processedImage: processedImage
+                                    )
+                                    .frame(height: 400)
                                     .cornerRadius(16)
                                     .shadow(radius: 10, x: 0, y: 5)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                                    )
+                                } else {
+                                    Image(uiImage: processedImage)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(maxHeight: 400)
+                                        .cornerRadius(16)
+                                        .shadow(radius: 10, x: 0, y: 5)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                        )
+                                }
+                            }
+                            .confettiCannon(
+                                trigger: $confettiTrigger,
+                                num: 50,
+                                confettis: [.shape(.circle), .shape(.triangle), .shape(.square)],
+                                colors: [.blue, .green, .red, .yellow, .purple],
+                                openingAngle: Angle(degrees: 60),
+                                closingAngle: Angle(degrees: 120),
+                                radius: 200
+                            )
+                            .onAppear {
+                                if model.showConfetti {
+                                    confettiTrigger += 1
+                                    model.showConfetti = false
+                                }
+                            }
+                            .onChange(of: model.showConfetti) { newValue in
+                                if newValue {
+                                    confettiTrigger += 1
+                                    model.showConfetti = false
+                                }
                             }
                             
                             // Toggle comparison button
@@ -123,8 +208,52 @@ struct ResultView: View {
                                         dismiss()
                                     }, showBorder: true)
                             }
-                        } else {
-                            Text("No processed image available")
+                        } 
+                        // Error State
+                        else if let errorMessage = model.errorMessage {
+                            VStack(spacing: 20) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.yellow)
+                                
+                                Text("Processing Failed")
+                                    .font(.system(.title2, design: .rounded, weight: .bold))
+                                    .foregroundColor(.white)
+                                
+                                Text(errorMessage)
+                                    .font(.system(.body, design: .rounded))
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .padding(.horizontal)
+                                
+                                Button {
+                                    if let image = model.selectedImage {
+                                        model.processImage(image)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Retry")
+                                    }
+                                    .font(.system(.headline, design: .rounded))
+                                    .padding(.horizontal, 40)
+                                    .padding(.vertical, 12)
+                                    .background(Color.accentColor)
+                                    .cornerRadius(20)
+                                    .foregroundColor(.white)
+                                }
+                                .padding(.top, 10)
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(.ultraThinMaterial)
+                            )
+                            .cornerRadius(20)
+                        } 
+                        // No image state
+                        else {
+                            Text("No image available")
                                 .font(.system(.headline, design: .rounded))
                                 .foregroundColor(.white)
                         }
@@ -303,3 +432,4 @@ struct ShareSheet: UIViewControllerRepresentable {
     ResultView()
         .environmentObject(WaterMarkRemovalModel())
 }
+

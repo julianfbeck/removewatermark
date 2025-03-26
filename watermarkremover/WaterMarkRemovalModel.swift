@@ -5,6 +5,7 @@
 //  Created by Julian Beck on 23.03.25.
 //
 
+
 import Foundation
 import SwiftUI
 import os.log
@@ -18,6 +19,7 @@ class WaterMarkRemovalModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showResultView = false
     @Published var removalText = "unwanted elements"
+    @Published var showConfetti = false
     
     private let serverURL = "https://watermark-remover.app.juli.sh/api/remove-watermark"
     
@@ -29,12 +31,14 @@ class WaterMarkRemovalModel: ObservableObject {
     func processImage(_ image: UIImage) {
         isProcessing = true
         errorMessage = nil
+        showResultView = true // Show the result view immediately
+        showConfetti = false
         
         Task {
             do {
                 let processedImg = try await removeWatermark(from: image)
                 self.processedImage = processedImg
-                self.showResultView = true
+                self.showConfetti = true // Trigger confetti when successful
                 self.logger.info("Image processed successfully")
             } catch {
                 self.errorMessage = "Failed to process image: \(error.localizedDescription)"
@@ -50,6 +54,7 @@ class WaterMarkRemovalModel: ObservableObject {
         errorMessage = nil
         showResultView = false
         isProcessing = false
+        showConfetti = false
     }
     
     private func removeWatermark(from image: UIImage) async throws -> UIImage {
