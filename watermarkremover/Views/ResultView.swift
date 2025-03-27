@@ -15,7 +15,10 @@ struct ResultView: View {
     @State private var showComparison = false
     @State private var showShareSheet = false
     @State private var confettiTrigger = 0
-    @State private var scale: CGFloat = 1.0
+    @State private var rippleCounter = 0
+    @State private var rippleOrigin: CGPoint = .zero
+    @State private var timer: Timer? = nil
+    @State private var viewBounds: CGRect = .zero
     
     var body: some View {
         ZStack {
@@ -71,23 +74,22 @@ struct ResultView: View {
                         // Processing State
                         if model.isProcessing {
                             if let originalImage = model.selectedImage {
-                                // Show pulsing blurred original image during processing
+                                // Show ripple effect on original image during processing
                                 ZStack {
                                     Image(uiImage: originalImage)
                                         .resizable()
                                         .scaledToFit()
                                         .frame(maxHeight: 400)
                                         .cornerRadius(16)
-                                        .blur(radius: 10)
-                                        .scaleEffect(scale)
-                                        .animation(
-                                            Animation.easeInOut(duration: 1.5)
-                                                .repeatForever(autoreverses: true),
-                                            value: scale
-                                        )
-                                        .onAppear {
-                                            scale = 1.05
-                                        }
+                                        .modifier(RippleEffect(at: rippleOrigin, trigger: rippleCounter))
+                                        .background(GeometryReader { geometry in
+                                            Color.clear
+                                                .onAppear {
+                                                    // Store bounds for random ripple generation
+                                                    viewBounds = geometry.frame(in: .local)
+                                                    startRippleEffect()
+                                                }
+                                        })
                                     
                                     // Loading spinner
                                     VStack {
@@ -196,7 +198,7 @@ struct ResultView: View {
                                         showShareSheet = true
                                     }, showBorder: true)
                             }
-                        } 
+                        }
                         // Error State
                         else if let errorMessage = model.errorMessage {
                             VStack(spacing: 20) {
@@ -238,7 +240,7 @@ struct ResultView: View {
                                     .fill(.ultraThinMaterial)
                             )
                             .cornerRadius(20)
-                        } 
+                        }
                         // No image state
                         else {
                             Text("No image available")
@@ -258,6 +260,35 @@ struct ResultView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onDisappear {
+            // Clean up the timer when view disappears
+            timer?.invalidate()
+            timer = nil
+        }
+    }
+    
+    // Function to create ripples at random positions
+    private func startRippleEffect() {
+        // Cancel any existing timer
+        timer?.invalidate()
+        
+        // Create a new timer that triggers ripples randomly
+        timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+            // Only generate ripples if we have valid bounds and are processing
+            if !viewBounds.isEmpty && model.isProcessing {
+                // Generate random position within the view bounds
+                let randomX = CGFloat.random(in: viewBounds.minX...viewBounds.maxX)
+                let randomY = CGFloat.random(in: viewBounds.minY...viewBounds.maxY)
+                
+                // Update origin and counter to trigger new ripple
+                rippleOrigin = CGPoint(x: randomX, y: randomY)
+                rippleCounter += 1
+                
+                // Play haptic feedback for each ripple
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+            }
+        }
     }
     
     private func saveImageToPhotoLibrary(_ image: UIImage) {
@@ -420,4 +451,3 @@ struct ShareSheet: UIViewControllerRepresentable {
     ResultView()
         .environmentObject(WaterMarkRemovalModel())
 }
-
