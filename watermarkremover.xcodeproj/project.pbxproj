@@ -15,33 +15,9 @@
 		9AED285F2D8E06F900A0EEB7 /* watermarkremover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = watermarkremover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9A39C9B72D95313F00484051 /* Exceptions for "watermarkremover" folder in "watermarkremover" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				helpers/Shaders/RippleShader.metal,
-			);
-			target = 9AED285E2D8E06F900A0EEB7 /* watermarkremover */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		9A39C9B82D95313F00484051 /* Exceptions for "watermarkremover" folder in "Copy Bundle Resources" phase from "watermarkremover" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 9AED285D2D8E06F900A0EEB7 /* Resources */;
-			membershipExceptions = (
-				helpers/Shaders/RippleShader.metal,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9AED28612D8E06F900A0EEB7 /* watermarkremover */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9A39C9B72D95313F00484051 /* Exceptions for "watermarkremover" folder in "watermarkremover" target */,
-				9A39C9B82D95313F00484051 /* Exceptions for "watermarkremover" folder in "Copy Bundle Resources" phase from "watermarkremover" target */,
-			);
 			path = watermarkremover;
 			sourceTree = "<group>";
 		};

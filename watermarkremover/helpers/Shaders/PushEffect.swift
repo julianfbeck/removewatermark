@@ -146,10 +146,10 @@ struct RippleModifier: ViewModifier {
 
     var duration: TimeInterval
 
-    var amplitude: Double = 12
-    var frequency: Double = 15
-    var decay: Double = 8
-    var speed: Double = 1200
+    var amplitude: Double = 20
+    var frequency: Double = 20
+    var decay: Double = 4
+    var speed: Double = 400
 
     func body(content: Content) -> some View {
         let shader = ShaderLibrary.Ripple(
