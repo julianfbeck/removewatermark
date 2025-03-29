@@ -85,9 +85,9 @@ struct ResultView: View {
                                     Image(uiImage: originalImage)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(maxHeight: 400)
                                         .cornerRadius(16)
                                         .modifier(RippleEffect(at: rippleOrigin, trigger: rippleCounter))
+                                        .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: model.isProcessing)
                                         .background(GeometryReader { geometry in
                                             Color.clear
                                                 .onAppear {
@@ -111,7 +111,14 @@ struct ResultView: View {
                                     .padding(30)
                                     .background(.ultraThinMaterial)
                                     .cornerRadius(20)
+                                    .shadow(radius: 10)
+                                    .frame(maxWidth: 280)
                                 }
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
+                                )
+                                .padding(.horizontal)
                             } else {
                                 ProgressView()
                                     .scaleEffect(2)
@@ -127,20 +134,22 @@ struct ResultView: View {
                                         originalImage: originalImage,
                                         processedImage: processedImage
                                     )
+                                    .frame(maxWidth: .infinity)
                                     .frame(height: 400)
                                     .cornerRadius(16)
                                     .shadow(radius: 10, x: 0, y: 5)
                                 } else {
                                     Image(uiImage: processedImage)
                                         .resizable()
-                                        .scaledToFit()
-                                        .frame(maxHeight: 400)
                                         .cornerRadius(16)
-                                        .shadow(radius: 10, x: 0, y: 5)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16)
                                                 .stroke(Color.white.opacity(0.4), lineWidth: 1)
                                         )
+                                        .scaledToFit()
+                                        .frame(maxWidth: .infinity)
+                                        .frame(maxHeight: 400)
+                                        .shadow(radius: 10, x: 0, y: 5)
                                 }
                             }
                             .confettiCannon(
@@ -265,8 +274,8 @@ struct ResultView: View {
                 ShareSheet(items: [image])
             }
         }
-            
-            
+        
+        
         .navigationBarBackButtonHidden(true)
         .onDisappear {
             // Clean up the timer when view disappears
@@ -359,7 +368,7 @@ struct ComparisonView: View {
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 10, weight: .bold))
                         }
-                        .foregroundColor(.accentColor)
+                            .foregroundColor(.accentColor)
                     )
                     .position(x: geometry.size.width * sliderPosition, y: geometry.size.height / 2)
                 
@@ -432,9 +441,9 @@ struct ActionButton: View {
                     .fill(backgroundColor)
                     .overlay(
                         showBorder ?
-                            RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
-                            : nil
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1.5)
+                        : nil
                     )
             )
             .foregroundColor(.white)
