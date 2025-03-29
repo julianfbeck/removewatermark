@@ -80,6 +80,7 @@ struct WaterMarkRemovalView: View {
                                 
                                 Button {
                                     model.clearImages()
+                                    photoPickerItem = nil
                                 } label: {
                                     HStack(spacing: 10) {
                                         Image(systemName: "photo")
@@ -135,21 +136,20 @@ struct WaterMarkRemovalView: View {
                                     
                                     Button {
                                         model.clearImages()
-                                        //reset selection
                                         photoPickerItem = nil
                                     } label: {
                                         HStack {
                                             Image(systemName: "arrow.triangle.2.circlepath")
                                             Text("Reset")
                                         }
-                                        .font(.system(.subheadline, design: .rounded, weight: .medium))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
+                                        .font(.system(.body, design: .rounded, weight: .medium))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
                                         .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.gray.opacity(0.6))
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .fill(Color.gray.opacity(0.3))
                                         )
+                                        .foregroundColor(.white)
                                     }
                                 }
                             }
@@ -169,6 +169,7 @@ struct WaterMarkRemovalView: View {
                         if model.selectedImage != nil && !model.isProcessing && model.errorMessage == nil && model.processedImage == nil {
                             Button {
                                 model.clearImages()
+                                photoPickerItem = nil
                             } label: {
                                 HStack {
                                     Image(systemName: "arrow.triangle.2.circlepath")
@@ -200,6 +201,7 @@ struct WaterMarkRemovalView: View {
                     if model.selectedImage != nil {
                         Button(action: {
                             model.clearImages()
+                            photoPickerItem = nil
                         }) {
                             Text("Clear")
                                 .font(.system(.subheadline, design: .rounded, weight: .medium))
@@ -224,6 +226,15 @@ struct WaterMarkRemovalView: View {
                             // Remove automatic processing
                             // model.processImage(uiImage)
                         }
+                    }
+                }
+            }
+            .onChange(of: model.navigateToResult) { navigating in
+                if navigating {
+                    // We'll reset the photoPickerItem after navigation completes
+                    // This allows selection of a new image next time
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        photoPickerItem = nil
                     }
                 }
             }
@@ -293,6 +304,12 @@ struct WaterMarkRemovalView: View {
                         if let image = model.selectedImage {
                             model.processImage(image)
                             model.navigateToResult = true
+                            
+                            // Reset photoPickerItem after a slight delay
+                            // This ensures we can select a new image when we return to this view
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                photoPickerItem = nil
+                            }
                         }
                     } label: {
                         HStack(spacing: 10) {
@@ -426,6 +443,7 @@ struct WaterMarkRemovalView: View {
                 
                 Button {
                     model.clearImages()
+                    photoPickerItem = nil
                 } label: {
                     HStack {
                         Image(systemName: "arrow.triangle.2.circlepath")
