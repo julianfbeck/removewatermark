@@ -31,12 +31,16 @@ struct OnboardingView: View {
                 ThirdOnboardingScreen()
                     .opacity(currentPage == 2 ? 1 : 0)
                     .animation(.easeInOut(duration: 0.4), value: currentPage)
+                
+                DisclaimerOnboardingScreen()
+                    .opacity(currentPage == 3 ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.4), value: currentPage)
             }
             
             Button(action: {
                 lightFeedbackGenerator.prepare()
                 
-                if currentPage < 2 {
+                if currentPage < 3 {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         currentPage += 1
                     }
@@ -50,7 +54,7 @@ struct OnboardingView: View {
                     globalViewModel.isShowingOnboarding = false
                 }
             }) {
-                Text(currentPage == 2 ? "Get Started" : "Continue")
+                Text(currentPage == 3 ? "I Agree & Get Started" : "Continue")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -60,6 +64,18 @@ struct OnboardingView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 30)
+            
+            // Page indicators
+            if currentPage < 3 {
+                HStack(spacing: 8) {
+                    ForEach(0..<4) { index in
+                        Circle()
+                            .fill(currentPage == index ? Color.accentColor : Color.gray.opacity(0.3))
+                            .frame(width: 8, height: 8)
+                    }
+                }
+                .padding(.bottom, 16)
+            }
         }
         .onAppear {
             // Prepare the haptic engines when view appears
