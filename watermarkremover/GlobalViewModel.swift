@@ -31,7 +31,6 @@ class GlobalViewModel: ObservableObject {
     @Published var usageCount: Int {
         didSet {
             UserDefaults.standard.set(usageCount, forKey: featureKey)
-            updateCanUseForFreeStatus()
         }
     }
     
@@ -62,7 +61,6 @@ class GlobalViewModel: ObservableObject {
         
         if !self.isPro && !self.isShowingOnboarding && !self.isFirstLaunch {
             self.isShowingPayWall = true
-            
         }
     }
     
@@ -116,24 +114,10 @@ class GlobalViewModel: ObservableObject {
         }
     }
     
-    func useFeature() -> Bool {
-        if isPro {
-            return true
-        }
-        
-        // Increment usage count
+    func useFeature() {
         usageCount += 1
-        
-        return true
     }
     
-    func resetUsage() {
-        usageCount = 0
-    }
-    
-    private func updateCanUseForFreeStatus() {
-        canUseForFree = usageCount < maxUsageCount || isPro
-    }
     
     // Return remaining uses
     var remainingUses: Int {

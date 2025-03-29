@@ -105,8 +105,11 @@ class WaterMarkRemovalModel: ObservableObject {
         
         // Create UIImage from response data
         guard let processedImage = UIImage(data: data) else {
+            Plausible.shared.trackEvent(event: "watermark_removal_failed", path: "/remove-watermark/error")
             throw NSError(domain: "Untag", code: 5, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from response data"])
         }
+        
+        Plausible.shared.trackEvent(event: "watermark_removed", path: "/remove-watermark/success")
         
         return processedImage
     }

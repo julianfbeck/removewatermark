@@ -103,7 +103,7 @@ struct ResultView: View {
                                             .scaleEffect(2)
                                             .tint(.white)
                                         
-                                        Text("Removing Watermark...")
+                                        Text("Removing...")
                                             .font(.system(.headline, design: .rounded))
                                             .foregroundColor(.white)
                                             .padding(.top, 20)
@@ -120,6 +120,8 @@ struct ResultView: View {
                                 )
                                 .frame(width: UIScreen.main.bounds.width * 0.8) // Set width to 80% of screen width
                                 .frame(maxHeight: UIScreen.main.bounds.height * 0.7)
+                                .preferredColorScheme(.dark)
+
                             } else {
                                 ProgressView()
                                     .scaleEffect(2)
@@ -377,7 +379,7 @@ struct ComparisonView: View {
                 VStack {
                     HStack {
                         // Original label
-                        Text("Original")
+                        Text("Processed")
                             .font(.system(.subheadline, design: .rounded, weight: .bold))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -389,7 +391,7 @@ struct ComparisonView: View {
                         Spacer()
                         
                         // Processed label
-                        Text("Processed")
+                        Text("Original")
                             .font(.system(.subheadline, design: .rounded, weight: .bold))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)

@@ -16,7 +16,7 @@ struct PayWallView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var showCloseButton = false
     @State private var closeButtonProgress: CGFloat = 0.0
-    private let allowCloseAfter: CGFloat = 5.0
+    private let allowCloseAfter: CGFloat = 4.0
     @State private var animateGradient = false
     @State private var isFreeTrialEnabled: Bool = true
     

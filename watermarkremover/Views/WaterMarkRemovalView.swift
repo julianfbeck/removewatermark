@@ -301,8 +301,14 @@ struct WaterMarkRemovalView: View {
                     
                     // Start removal button
                     Button {
+                        if !self.globalViewModel.isPro &&  globalViewModel.remainingUses <= 0 {
+                           self.globalViewModel.isShowingPayWall = true
+                            return
+                        }
+                            
                         if let image = model.selectedImage {
                             model.processImage(image)
+                            globalViewModel.useFeature()
                             model.navigateToResult = true
                             
                             // Reset photoPickerItem after a slight delay
@@ -330,7 +336,12 @@ struct WaterMarkRemovalView: View {
                     .padding(.top, 8)
                 }
             } else {
-                selectImageButton
+                VStack(spacing: 20) {
+                    selectImageButton
+                    
+                    // Feature preview cards
+                    featureCardsView
+                }
             }
         }
         .padding()
@@ -377,7 +388,136 @@ struct WaterMarkRemovalView: View {
                     .stroke(Color.white.opacity(0.4), lineWidth: 1)
             )
             .shadow(radius: 8, x: 0, y: 4)
+            .overlay(
+                VStack {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Tap to Begin")
+                            .font(.system(.subheadline, design: .rounded, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Image(systemName: "arrow.down")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.black.opacity(0.6))
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(radius: 4)
+                    .offset(y: -20)
+                    
+                    Spacer()
+                }
+            )
         }
+    }
+    
+    // New feature cards view
+    private var featureCardsView: some View {
+        VStack(spacing: 16) {
+            Text("How It Works")
+                .font(.system(.title3, design: .rounded, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.top, 8)
+            
+            // Feature cards
+            featureCard(
+                icon: "sparkles.rectangle.stack",
+                title: "Smart Detection",
+                description: "Our AI automatically detects watermarks and elements to remove"
+            )
+            
+            featureCard(
+                icon: "wand.and.stars",
+                title: "Seamless Removal",
+                description: "Eliminates unwanted elements with smart content reconstruction"
+            )
+            
+            featureCard(
+                icon: "square.and.arrow.down",
+                title: "Easy Export",
+                description: "Save your clean images directly to your photo library"
+            )
+            
+            // Inspirational message at the bottom
+            VStack(spacing: 10) {
+                Text("Ready to transform your photos?")
+                    .font(.system(.headline, design: .rounded, weight: .bold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                
+                Text("Select a photo above to start the magic")
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.accentColor)
+                    .padding(.top, 5)
+            }
+            .padding(.vertical, 20)
+        }
+    }
+    
+    private func featureCard(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .center, spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: 60, height: 60)
+                .background(
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.accentColor,
+                                    Color.purple
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+                .shadow(color: Color.accentColor.opacity(0.5), radius: 5, x: 0, y: 2)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(.headline, design: .rounded, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text(description)
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundColor(.white.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.black.opacity(0.5),
+                            Color.black.opacity(0.3)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 3)
     }
     
     private var processingView: some View {

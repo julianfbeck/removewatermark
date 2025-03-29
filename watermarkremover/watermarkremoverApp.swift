@@ -24,8 +24,7 @@ struct watermarkremoverApp: App {
                 .environmentObject(wmrm)
                 
                 .onAppear {
-                    
-//                    Plausible.shared.configure(domain: "tryon.juli.sh", endpoint: "https://stats.juli.sh/api/event")
+                    Plausible.shared.configure(domain: "untag.juli.sh", endpoint: "https://stats.juli.sh/api/event")
                 }
         }
     }

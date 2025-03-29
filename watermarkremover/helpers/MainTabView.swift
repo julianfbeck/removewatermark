@@ -17,7 +17,6 @@ struct MainTabView: View {
                 WaterMarkRemovalView()
                     .fullScreenCover(isPresented: $globalViewModel.isShowingPayWall) {
                         PayWallView()
-                            
                     }
             }
         }
