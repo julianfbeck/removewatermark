@@ -59,6 +59,11 @@ class GlobalViewModel: ObservableObject {
         
         setupPurchases()
         fetchOfferings()
+        
+        if !self.isPro && !self.isShowingOnboarding && !self.isFirstLaunch {
+            self.isShowingPayWall = true
+            
+        }
     }
     
     private func setupPurchases() {
@@ -116,18 +121,8 @@ class GlobalViewModel: ObservableObject {
             return true
         }
         
-        if usageCount >= maxUsageCount {
-            isShowingPayWall = true
-            return false
-        }
-        
         // Increment usage count
         usageCount += 1
-        
-        // After increment, check if we've reached the limit
-        if usageCount >= maxUsageCount {
-            isShowingPayWall = true
-        }
         
         return true
     }

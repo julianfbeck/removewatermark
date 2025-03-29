@@ -56,8 +56,11 @@ struct ResultView: View {
                     
                     Spacer()
                     
-                    // Always show retry button
                     Button {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            globalViewModel.isShowingPayWall = true
+                        }
+                        
                         if let image = model.selectedImage {
                             model.processImage(image)
                         }
