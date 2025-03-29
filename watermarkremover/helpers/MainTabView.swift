@@ -14,22 +14,7 @@ struct MainTabView: View {
             if globalViewModel.isShowingOnboarding {
                 OnboardingView()
             } else {
-                TabView {
-                    WaterMarkRemovalView()
-                        .tabItem {
-                            Label("Try On", systemImage: "tshirt.fill")
-                        }
-                    
-                    HistoryView()
-                        .tabItem {
-                            Label("History", systemImage: "clock.fill")
-                        }
-                    
-                    SettingsView()
-                        .tabItem {
-                            Label("Settings", systemImage: "gear")
-                        }
-                }
+                WaterMarkRemovalView()
             }
         }
     }

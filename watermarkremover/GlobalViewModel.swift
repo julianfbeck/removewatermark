@@ -20,13 +20,6 @@ class GlobalViewModel: ObservableObject {
         }
     }
     @Published var isShowingRatings = false
-    @Published var remainingUses: Int
-    @Published var canUseForFree: Bool
-    @Published var downloadCount: Int {
-        didSet {
-            UserDefaults.standard.set(downloadCount, forKey: "downloadCount")
-        }
-    }
   
     @Published var isPro: Bool {
         didSet {
@@ -34,28 +27,18 @@ class GlobalViewModel: ObservableObject {
         }
     }
     
-    @Published var dailyUsageLimit: Int {
+    // Persistent total usage tracking
+    @Published var usageCount: Int {
         didSet {
-            UserDefaults.standard.set(dailyUsageLimit, forKey: "dailyUsageLimit")
-        }
-    }
-    @Published var dailyUsageCount: Int {
-        didSet {
-            UserDefaults.standard.set(dailyUsageCount, forKey: "dailyUsageCount")
-        }
-    }
-    @Published var lastUsageDate: Date? {
-        didSet {
-            if let date = lastUsageDate {
-                UserDefaults.standard.set(date, forKey: "lastUsageDate")
-            }
+            UserDefaults.standard.set(usageCount, forKey: featureKey)
+            updateCanUseForFreeStatus()
         }
     }
     
+    @Published var canUseForFree: Bool
+    
     private let maxUsageCount: Int = 3
     private let featureKey = "finalUsageCountforReal"
-    private let baseDailyLimit: Int = 2
-    let maxDownlaods: Int = 3
     
     // Track if this is the first launch
     private var isFirstLaunch: Bool {
@@ -63,44 +46,18 @@ class GlobalViewModel: ObservableObject {
     }
     
     init() {
-        // Initialize all properties first
+        // Initialize all properties from stored values first
         self.isPro = UserDefaults.standard.bool(forKey: "isPro")
-        self.downloadCount = UserDefaults.standard.integer(forKey: "downloadCount")
-        
-        // Check if the user has seen the onboarding
         self.isShowingOnboarding = !UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
         
-        let currentUsage = UserDefaults.standard.integer(forKey: featureKey)
-        self.remainingUses = max(0, maxUsageCount - currentUsage)
-        self.canUseForFree = currentUsage < maxUsageCount
+        // Get usage count from UserDefaults
+        let storedUsageCount = UserDefaults.standard.integer(forKey: featureKey)
         
-        // Initialize usage tracking
-        self.dailyUsageLimit = UserDefaults.standard.integer(forKey: "dailyUsageLimit")
-        self.dailyUsageCount = UserDefaults.standard.integer(forKey: "dailyUsageCount")
+        // Initialize both properties directly
+        self.usageCount = storedUsageCount
+        self.canUseForFree = storedUsageCount < maxUsageCount || UserDefaults.standard.bool(forKey: "isPro")
         
-        if let savedDate = UserDefaults.standard.object(forKey: "lastUsageDate") as? Date {
-            self.lastUsageDate = savedDate
-        } else {
-            self.lastUsageDate = Date()
-        }
-        
-        // Now that all properties are initialized, we can perform additional setup
-        
-        // Reset daily count if it's a new day
-        if let savedDate = self.lastUsageDate, !Calendar.current.isDate(savedDate, inSameDayAs: Date()) {
-            self.dailyUsageCount = 0
-        }
-        
-        // Set initial daily limit if needed
-        if self.dailyUsageLimit == 0 {
-            self.dailyUsageLimit = baseDailyLimit
-        }
-        
-        if self.isPro {
-            self.canUseForFree = true
-        }
-        
-        // If user is not pro and has already seen onboarding, show paywall
+        // Setup remaining logic after all properties are initialized
         if !self.isPro && !self.isShowingOnboarding {
             self.isShowingPayWall = true
         }
@@ -164,52 +121,32 @@ class GlobalViewModel: ObservableObject {
             return true
         }
         
-        // Check if it's a new day
-        if let lastDate = lastUsageDate, !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
-            dailyUsageCount = 0
-            lastUsageDate = Date()
-        } else if lastUsageDate == nil {
-            lastUsageDate = Date()
-        }
-        
-        // Check daily limit
-        if dailyUsageCount >= dailyUsageLimit {
+        if usageCount >= maxUsageCount {
             isShowingPayWall = true
             return false
         }
         
         // Increment usage count
-        dailyUsageCount += 1
-        lastUsageDate = Date()
+        usageCount += 1
         
-        // Legacy usage tracking
-        let currentUsage = UserDefaults.standard.integer(forKey: featureKey)
-        if currentUsage <= maxUsageCount {
-            UserDefaults.standard.set(currentUsage + 1, forKey: featureKey)
-            updateUsageStatus()
+        // After increment, check if we've reached the limit
+        if usageCount >= maxUsageCount {
+            isShowingPayWall = true
         }
         
         return true
     }
     
     func resetUsage() {
-        UserDefaults.standard.set(0, forKey: featureKey)
-        updateUsageStatus()
-        dailyUsageCount = 0
+        usageCount = 0
     }
     
-    private func updateUsageStatus() {
-        let currentUsage = UserDefaults.standard.integer(forKey: featureKey)
-        remainingUses = max(0, maxUsageCount - currentUsage)
-        canUseForFree = currentUsage < maxUsageCount || isPro
+    private func updateCanUseForFreeStatus() {
+        canUseForFree = usageCount < maxUsageCount || isPro
     }
     
-    func incrementDownloadCount() {
-        downloadCount += 1
-    }
-    
-    // Return remaining uses for today
-    var remainingUsesToday: Int {
-        return max(0, dailyUsageLimit - dailyUsageCount)
+    // Return remaining uses
+    var remainingUses: Int {
+        return max(0, maxUsageCount - usageCount)
     }
 }

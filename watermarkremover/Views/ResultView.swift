@@ -11,6 +11,7 @@ import ConfettiSwiftUI
 struct ResultView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var model: WaterMarkRemovalModel
+    @EnvironmentObject private var globalViewModel: GlobalViewModel
     
     @State private var showComparison = false
     @State private var showShareSheet = false
@@ -259,6 +260,12 @@ struct ResultView: View {
                 ShareSheet(items: [image])
             }
         }
+        .fullScreenCover(isPresented: $globalViewModel.isShowingPayWall) {
+            PayWallView()
+                
+        }
+            
+            
         .navigationBarBackButtonHidden(true)
         .onDisappear {
             // Clean up the timer when view disappears

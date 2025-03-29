@@ -397,7 +397,15 @@ struct WaterMarkRemovalView: View {
             // Action buttons
             HStack(spacing: 16) {
                 Button {
+                    // retry is always free
                     if let image = model.selectedImage {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            if !globalViewModel.isPro  {
+                                print("hey")
+                                globalViewModel.isShowingPayWall = true
+                            }
+                        }
+                        
                         model.processImage(image)
                     }
                 } label: {
