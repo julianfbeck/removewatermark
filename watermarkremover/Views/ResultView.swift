@@ -10,6 +10,7 @@ import ConfettiSwiftUI
 
 struct ResultView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) private var presentationMode
     @EnvironmentObject private var model: WaterMarkRemovalModel
     @EnvironmentObject private var globalViewModel: GlobalViewModel
     
@@ -39,9 +40,10 @@ struct ResultView: View {
                 // Header
                 HStack {
                     Button {
-                        dismiss()
+                        // Use proper navigation back for navigation stack
+                        presentationMode.wrappedValue.dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
+                        Image(systemName: "chevron.left.circle.fill")
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundColor(.white)
                     }
@@ -259,10 +261,6 @@ struct ResultView: View {
             if let image = model.processedImage {
                 ShareSheet(items: [image])
             }
-        }
-        .fullScreenCover(isPresented: $globalViewModel.isShowingPayWall) {
-            PayWallView()
-                
         }
             
             

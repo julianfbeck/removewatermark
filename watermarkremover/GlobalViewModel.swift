@@ -57,11 +57,6 @@ class GlobalViewModel: ObservableObject {
         self.usageCount = storedUsageCount
         self.canUseForFree = storedUsageCount < maxUsageCount || UserDefaults.standard.bool(forKey: "isPro")
         
-        // Setup remaining logic after all properties are initialized
-        if !self.isPro && !self.isShowingOnboarding {
-            self.isShowingPayWall = true
-        }
-        
         setupPurchases()
         fetchOfferings()
     }

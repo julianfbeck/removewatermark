@@ -61,9 +61,7 @@ struct WaterMarkRemovalView: View {
                         } else if let _ = model.processedImage {
                             // Display View Result button with Reset button inline
                             HStack(spacing: 15) {
-                                Button {
-                                    model.showResultView = true
-                                } label: {
+                                NavigationLink(destination: ResultView()) {
                                     HStack(spacing: 10) {
                                         Image(systemName: "eye")
                                             .font(.system(size: 18))
@@ -99,6 +97,11 @@ struct WaterMarkRemovalView: View {
                                 }
                                 .shadow(radius: 4, x: 0, y: 2)
                             }
+                        }
+                        
+                        // Add a programmatic navigation link
+                        NavigationLink(destination: ResultView(), isActive: $model.navigateToResult) {
+                            EmptyView()
                         }
                         
                         if let errorMessage = model.errorMessage {
@@ -186,10 +189,6 @@ struct WaterMarkRemovalView: View {
                     .padding(.horizontal)
                     .padding(.top, 40) // Increased top padding since we're hiding the nav bar
                 }
-            }
-            // Navigation to ResultView
-            .fullScreenCover(isPresented: $model.showResultView) {
-                ResultView()
             }
             // Remove navigation title and hide the navigation bar
             .navigationBarTitleDisplayMode(.inline)
@@ -291,6 +290,7 @@ struct WaterMarkRemovalView: View {
                     Button {
                         if let image = model.selectedImage {
                             model.processImage(image)
+                            model.navigateToResult = true
                         }
                     } label: {
                         HStack(spacing: 10) {
@@ -401,7 +401,6 @@ struct WaterMarkRemovalView: View {
                     if let image = model.selectedImage {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                             if !globalViewModel.isPro  {
-                                print("hey")
                                 globalViewModel.isShowingPayWall = true
                             }
                         }

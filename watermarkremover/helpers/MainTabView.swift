@@ -15,6 +15,10 @@ struct MainTabView: View {
                 OnboardingView()
             } else {
                 WaterMarkRemovalView()
+                    .fullScreenCover(isPresented: $globalViewModel.isShowingPayWall) {
+                        PayWallView()
+                            
+                    }
             }
         }
     }

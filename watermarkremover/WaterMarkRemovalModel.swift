@@ -20,6 +20,7 @@ class WaterMarkRemovalModel: ObservableObject {
     @Published var showResultView = false
     @Published var removalText = "unwanted elements"
     @Published var showConfetti = false
+    @Published var navigateToResult = false
     
     private let serverURL = "https://watermark-remover.app.juli.sh/api/remove-watermark"
     
@@ -31,7 +32,6 @@ class WaterMarkRemovalModel: ObservableObject {
     func processImage(_ image: UIImage) {
         isProcessing = true
         errorMessage = nil
-        showResultView = true // Show the result view immediately
         showConfetti = false
         
         Task {
@@ -53,6 +53,7 @@ class WaterMarkRemovalModel: ObservableObject {
         processedImage = nil
         errorMessage = nil
         showResultView = false
+        navigateToResult = false
         isProcessing = false
         showConfetti = false
     }
