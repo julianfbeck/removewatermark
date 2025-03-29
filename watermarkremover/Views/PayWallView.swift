@@ -30,16 +30,30 @@ struct PayWallView: View {
         ZStack {
             // Background gradient
             LinearGradient(
-                colors: [Color.blue.opacity(0.7), Color.purple.opacity(0.7)],
-                startPoint: animateGradient ? .topLeading : .bottomLeading,
-                endPoint: animateGradient ? .bottomTrailing : .topTrailing
+                colors: [Color.black, Color.black.opacity(0.9), Color.accentColor.opacity(0.7)],
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
-            .onAppear {
-                withAnimation(.linear(duration: 5.0).repeatForever(autoreverses: true)) {
-                    animateGradient.toggle()
-                }
+            
+            // Gradient orb in background (similar to main view)
+            GeometryReader { geometry in
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.accentColor.opacity(0.6),
+                                Color.purple.opacity(0.3)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: geometry.size.width * 0.8)
+                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.3)
+                    .blur(radius: 60)
             }
+            .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
@@ -75,27 +89,31 @@ struct PayWallView: View {
                     
                     // Header
                     VStack(spacing: 16) {
-                        Image(systemName: "tshirt.fill")
+                        Image(systemName: "wand.and.stars")
                             .font(.system(size: 48))
                             .foregroundColor(.white)
                         
-                        Text("Premium Try-On")
-                            .font(.system(size: 32, weight: .bold))
+                        Text("Untag Premium")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                     }
-                    .padding(.top, 20)
                     
                     // Features list
                     VStack(alignment: .leading, spacing: 20) {
-                        FeatureRow(icon: "tshirt.fill", text: "Unlimited Try-On sessions")
-                        FeatureRow(icon: "star.fill", text: "No daily usage limits")
+                        FeatureRow(icon: "photo.stack.fill", text: "Unlimited photos")
+                        FeatureRow(icon: "bag.circle.fill", text: "No purchase screens")
+                        FeatureRow(icon: "bolt.fill", text: "Priority processing queue")
                     }
                     .padding(.vertical, 16)
                     .padding(.horizontal, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.black.opacity(0.2))
+                            .fill(Color.black.opacity(0.5))
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(.ultraThinMaterial)
+                            )
                     )
                     .padding(.horizontal)
                     
@@ -145,8 +163,14 @@ struct PayWallView: View {
                                         )
                                 }
                                 .padding()
-                                .background(Color.black.opacity(0.25))
-                                .cornerRadius(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.black.opacity(0.5))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(.ultraThinMaterial)
+                                        )
+                                )
                             }
                             
                             // Weekly with trial option
@@ -183,8 +207,14 @@ struct PayWallView: View {
                                         )
                                 }
                                 .padding()
-                                .background(Color.black.opacity(0.25))
-                                .cornerRadius(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.black.opacity(0.5))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(.ultraThinMaterial)
+                                        )
+                                )
                             }
                             
                             // Free Trial Toggle Section
@@ -193,12 +223,18 @@ struct PayWallView: View {
                                 Toggle("Enable 3-Day Free Trial", isOn: $isFreeTrialEnabled)
                                     .fontWeight(.bold)
                                     .font(.headline)
-                                    .tint(.orange)
+                                    .tint(.accentColor)
                                     .foregroundColor(.white)
                             }
                             .padding()
-                            .background(Color.black.opacity(0.25))
-                            .cornerRadius(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.black.opacity(0.5))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(.ultraThinMaterial)
+                                    )
+                            )
                             
                             // Purchase button
                             Button(action: {
@@ -214,6 +250,7 @@ struct PayWallView: View {
                                     
                                     Text(isFreeTrialEnabled ? "Start Free Trial" : "Upgrade to Premium")
                                         .fontWeight(.semibold)
+                                        .font(.system(.body, design: .rounded))
                                     
                                     if !globalViewModel.isPurchasing {
                                         Image(systemName: "chevron.right")
@@ -221,13 +258,13 @@ struct PayWallView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(Color.white)
-                                .foregroundColor(.black)
-                                .cornerRadius(16)
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                .background(Color.accentColor)
+                                .foregroundColor(.white)
+                                .cornerRadius(25)
+                                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                             }
                             .disabled(globalViewModel.isPurchasing)
-                            .padding(.top, 8)
+                            .padding(.top, 2)
                         }
                         .padding(.horizontal)
                     } else {
@@ -242,8 +279,14 @@ struct PayWallView: View {
                             .font(.callout)
                             .foregroundColor(.red)
                             .padding()
-                            .background(Color.white.opacity(0.2))
-                            .cornerRadius(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.black.opacity(0.5))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(.ultraThinMaterial)
+                                    )
+                            )
                             .padding(.horizontal)
                     }
                     
@@ -271,7 +314,6 @@ struct PayWallView: View {
                             .font(.footnote)
                             .foregroundColor(.white)
                     }
-                    .padding(.top, 16)
                     .padding(.bottom, 24)
                 }
                 .padding(.vertical)
@@ -307,7 +349,7 @@ struct FeatureRow: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.white.opacity(0.15))
+                    .fill(Color.accentColor.opacity(0.2))
                     .frame(width: 36, height: 36)
                 
                 Image(systemName: icon)
@@ -316,7 +358,7 @@ struct FeatureRow: View {
             }
             
             Text(text)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
             Spacer()
         }

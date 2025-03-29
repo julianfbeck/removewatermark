@@ -14,7 +14,7 @@ struct watermarkremoverApp: App {
     @StateObject var wmrm = WaterMarkRemovalModel()
     
     init() {
-        Purchases.configure(withAPIKey: "appl_KIgdiugXJfhqQJjnhXZnVapWakD")
+        Purchases.configure(withAPIKey: "appl_YFbOWJoZtxUiCnjJRaMDgEMqYAV")
     }
     
     var body: some Scene {

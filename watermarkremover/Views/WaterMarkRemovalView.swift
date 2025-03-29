@@ -135,6 +135,8 @@ struct WaterMarkRemovalView: View {
                                     
                                     Button {
                                         model.clearImages()
+                                        //reset selection
+                                        photoPickerItem = nil
                                     } label: {
                                         HStack {
                                             Image(systemName: "arrow.triangle.2.circlepath")
