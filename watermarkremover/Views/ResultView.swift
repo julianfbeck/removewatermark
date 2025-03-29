@@ -21,6 +21,7 @@ struct ResultView: View {
     @State private var rippleOrigin: CGPoint = .zero
     @State private var timer: Timer? = nil
     @State private var viewBounds: CGRect = .zero
+    @State private var retryCount = 0
     
     var body: some View {
         ZStack {
@@ -57,20 +58,27 @@ struct ResultView: View {
                     Spacer()
                     
                     Button {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            globalViewModel.isShowingPayWall = true
-                        }
                         
-                        if let image = model.selectedImage {
-                            model.processImage(image)
+                        if retryCount < 3 {
+                            retryCount += 1
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                if !globalViewModel.isPro {
+                                    globalViewModel.isShowingPayWall = true
+                                }
+                            }
+                            
+                            if let image = model.selectedImage {
+                                model.processImage(image)
+                            }
                         }
                     } label: {
                         Image(systemName: "arrow.clockwise.circle.fill")
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundColor(.white)
                     }
-                    .disabled(model.isProcessing || model.selectedImage == nil)
-                    .opacity(model.isProcessing || model.selectedImage == nil ? 0.5 : 1)
+                    .disabled(model.isProcessing || model.selectedImage == nil || retryCount >= 3)
+                    .opacity((model.isProcessing || model.selectedImage == nil || retryCount >= 3) ? 0.5 : 1)
                 }
                 .padding(.horizontal)
                 .padding(.top, 20)
@@ -235,21 +243,26 @@ struct ResultView: View {
                                     .padding(.horizontal)
                                 
                                 Button {
-                                    if let image = model.selectedImage {
-                                        model.processImage(image)
+                                    if retryCount < 3 {
+                                        retryCount += 1
+                                        
+                                        if let image = model.selectedImage {
+                                            model.processImage(image)
+                                        }
                                     }
                                 } label: {
                                     HStack {
                                         Image(systemName: "arrow.clockwise")
-                                        Text("Retry")
+                                        Text(retryCount >= 3 ? "Retry Limit Reached" : "Retry")
                                     }
                                     .font(.system(.headline, design: .rounded))
                                     .padding(.horizontal, 40)
                                     .padding(.vertical, 12)
-                                    .background(Color.accentColor)
+                                    .background(retryCount >= 3 ? Color.gray : Color.accentColor)
                                     .cornerRadius(20)
                                     .foregroundColor(.white)
                                 }
+                                .disabled(retryCount >= 3)
                                 .padding(.top, 10)
                             }
                             .padding()

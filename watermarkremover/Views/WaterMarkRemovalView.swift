@@ -305,6 +305,13 @@ struct WaterMarkRemovalView: View {
                            self.globalViewModel.isShowingPayWall = true
                             return
                         }
+                        
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            if !globalViewModel.isPro {
+                                globalViewModel.isShowingPayWall = true
+                            }
+                        }
                             
                         if let image = model.selectedImage {
                             model.processImage(image)
@@ -319,9 +326,9 @@ struct WaterMarkRemovalView: View {
                         }
                     } label: {
                         HStack(spacing: 10) {
-                            Image(systemName: "wand.and.stars")
+                            Image(systemName: globalViewModel.remainingUses > 0 || globalViewModel.isPro ? "wand.and.stars":"checkmark.seal")
                                 .font(.system(size: 18))
-                            Text("Start Removal")
+                            Text(globalViewModel.remainingUses > 0 || globalViewModel.isPro ? "Start Removing" : "Unlimited Access")
                                 .font(.system(.body, design: .rounded, weight: .medium))
                         }
                         .frame(maxWidth: .infinity)
