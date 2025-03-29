@@ -118,7 +118,8 @@ struct ResultView: View {
                                     RoundedRectangle(cornerRadius: 16)
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
                                 )
-                                .padding(.horizontal)
+                                .frame(width: UIScreen.main.bounds.width * 0.8) // Set width to 80% of screen width
+                                .frame(maxHeight: UIScreen.main.bounds.height * 0.7)
                             } else {
                                 ProgressView()
                                     .scaleEffect(2)
