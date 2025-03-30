@@ -12,6 +12,7 @@ import ConfettiSwiftUI // Make sure to import the package
 struct OnboardingView: View {
     @State private var currentPage = 0
     @EnvironmentObject var globalViewModel: GlobalViewModel
+    @Environment(\.requestReview) var requestReview
     
     // For haptic feedback
     let lightFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
@@ -52,6 +53,11 @@ struct OnboardingView: View {
                     mediumFeedbackGenerator.impactOccurred()
                     // We're at the last screen, dismiss the onboarding
                     globalViewModel.isShowingOnboarding = false
+                    
+                    // Request review after a slight delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        requestReview()
+                    }
                 }
             }) {
                 Text(currentPage == 3 ? "I Agree & Get Started" : "Continue")
