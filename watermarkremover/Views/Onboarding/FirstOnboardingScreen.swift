@@ -16,7 +16,8 @@ struct FirstOnboardingScreen: View {
     
     // Feature items
     let features = [
-        ("photo.badge.checkmark", "Remove Watermarks", "Erase logos, text & copyright notices"),
+        ("photo.badge.checkmark", "Remove Unwanted Objects", "Erase people & objects"),
+        ("paintbrush.pointed.fill", "AI-Powered Editing", "Smart AI for perfect results"),
         ("lasso", "Object Removal", "Delete unwanted items & people"),
         ("rectangle.badge.checkmark", "Background Cleanup", "Replace or remove backgrounds")
     ]

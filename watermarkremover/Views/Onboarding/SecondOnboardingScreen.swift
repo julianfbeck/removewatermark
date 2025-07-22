@@ -15,7 +15,7 @@ struct SecondOnboardingScreen: View {
     var body: some View {
         VStack(spacing: 24) {
             // Title at the top
-            Text("Remove Watermarks")
+            Text("Remove Objects")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 40)
@@ -82,7 +82,7 @@ struct SecondOnboardingScreen: View {
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
                 
-                Text("Our advanced AI instantly detects and erases unwanted watermarks while preserving the original quality of your precious memories.")
+                Text("Our advanced AI instantly detects and erases unwanted Objects while preserving the original quality of your precious memories.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
@@ -109,8 +109,6 @@ struct SecondOnboardingScreen: View {
                 animationPhase = 2
             }
             
-            // Apply haptic feedback during shaking
-            applyShakingHaptics()
             
             // After 2 seconds of shaking, show the clean image
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -167,18 +165,6 @@ struct SecondOnboardingScreen: View {
         }
     }
     
-    func applyShakingHaptics() {
-        // Create a timer for haptic pulses during shaking
-        var count = 0
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { timer in
-            count += 1
-            impactFeedback.impactOccurred(intensity: 0.7)
-            
-            if count >= 10 {
-                timer.invalidate()
-            }
-        }
-    }
 }
 
 // Custom shake effect modifier
