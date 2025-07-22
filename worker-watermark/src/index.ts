@@ -4,6 +4,7 @@ import OpenAI from 'openai'
 
 interface Env {
   OPENAI_API_KEY: string;
+  GOOGLE_API_KEY: string;
   KV_STATISTICS: KVNamespace;
 }
 
@@ -257,39 +258,32 @@ app.post('/api/remove-watermark', async (c) => {
       removalTarget: removalText
     })
 
-    const apiKey = c.env?.OPENAI_API_KEY
-    if (!apiKey) {
-      // Increment failed runs counter
-      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
-      // Update daily statistics - failed
-      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
-      throw new Error('OpenAI API key not configured')
-    }
-
-    // Make the API request to OpenAI
-    const client = new OpenAI({ apiKey });
-
-    // Convert base64 image to File for OpenAI
-    const imageBytes = Uint8Array.from(atob(image.data), c => c.charCodeAt(0));
-    const imageFile = new File([imageBytes], 'image.jpg', { type: image.mime_type });
-
-    const response = await client.images.edit({
-      model: "gpt-image-1",
-      image: imageFile,
-      n: 1,
-      quality: "low",
-      prompt: `Remove ${removalText} from this image while preserving the original image quality and content. Keep the image exactly the same except for removing the ${removalText}.`
-    });
-
-    // Extract the image data from OpenAI response
-    const base64Image = response.data?.[0]?.b64_json
-    if (!base64Image) {
-      // Increment failed runs counter
-      await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
-      // Update daily statistics - failed
-      await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
-      console.log('OpenAI response:', response)
-      throw new Error('No image data in OpenAI response')
+    // Try Gemini first, then fall back to OpenAI
+    let base64Image: string;
+    
+    try {
+      // Try Gemini API first
+      const googleApiKey = c.env?.GOOGLE_API_KEY;
+      if (googleApiKey) {
+        console.log('Trying Gemini API first...');
+        base64Image = await tryGeminiAPI(googleApiKey, image, removalText);
+      } else {
+        throw new Error('No Google API key available, trying OpenAI...');
+      }
+    } catch (geminiError) {
+      console.log('Gemini failed, trying OpenAI:', geminiError);
+      
+      // Fall back to OpenAI
+      const openaiApiKey = c.env?.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        // Increment failed runs counter
+        await incrementStatCounter(c.env.KV_STATISTICS, 'failedRuns');
+        // Update daily statistics - failed
+        await incrementDailyCounter(c.env.KV_STATISTICS, 'failed');
+        throw new Error('Neither Google nor OpenAI API keys configured');
+      }
+      
+      base64Image = await tryOpenAIAPI(openaiApiKey, image, removalText);
     }
 
     // Convert base64 to blob
@@ -325,6 +319,78 @@ app.post('/api/remove-watermark', async (c) => {
     }, 500)
   }
 })
+
+// API helper functions
+async function tryGeminiAPI(apiKey: string, image: ImageData, removalText: string): Promise<string> {
+  const requestBody = {
+    contents: [{
+      role: "user",
+      parts: [
+        {
+          inline_data: {
+            mime_type: image.mime_type,
+            data: image.data
+          }
+        },
+        {
+          text: `Remove ${removalText} from this image while preserving the original image quality and content. Keep the image exactly the same except for removing the ${removalText}.`
+        }
+      ]
+    }],
+    generationConfig: {
+      temperature: 1,
+      topP: 0.95,
+      topK: 40,
+      maxOutputTokens: 8192,
+      responseModalities: ["Text", "Image"]
+    }
+  };
+
+  const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=' + apiKey;
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json() as any;
+  const base64Image = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+  if (!base64Image) {
+    throw new Error('No image data in Gemini response');
+  }
+  
+  return base64Image;
+}
+
+async function tryOpenAIAPI(apiKey: string, image: ImageData, removalText: string): Promise<string> {
+  const client = new OpenAI({ apiKey });
+
+  // Convert base64 image to File for OpenAI
+  const imageBytes = Uint8Array.from(atob(image.data), c => c.charCodeAt(0));
+  const imageFile = new File([imageBytes], 'image.jpg', { type: image.mime_type });
+
+  const response = await client.images.edit({
+    model: "gpt-image-1",
+    image: imageFile,
+    n: 1,
+    quality: "medium",
+    prompt: `Remove ${removalText} from this image while preserving the original image quality and content. Keep the image exactly the same except for removing the ${removalText}.`
+  });
+
+  const base64Image = response.data?.[0]?.b64_json;
+  if (!base64Image) {
+    throw new Error('No image data in OpenAI response');
+  }
+  
+  return base64Image;
+}
 
 // Helper functions for statistics
 async function getStatistics(kv: KVNamespace): Promise<Statistics> {
