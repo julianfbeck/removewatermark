@@ -12,7 +12,6 @@ struct ThirdOnboardingScreen: View {
     
     // Removal options - limited to 5
     let removalOptions = [
-        ("watermark", "Watermarks", "Remove logos, text, and copyright notices", "photo.badge.checkmark"),
         ("person", "People", "Remove or blur unwanted individuals", "person.crop.circle.badge.xmark"),
         ("background", "Backgrounds", "Replace or remove image backgrounds", "rectangle.badge.checkmark"),
         ("object", "Objects", "Remove photobombers and unwanted items", "lasso"),
