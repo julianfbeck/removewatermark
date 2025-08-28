@@ -5,6 +5,9 @@ import OpenAI from 'openai'
 interface Env {
   OPENAI_API_KEY: string;
   GOOGLE_API_KEY: string;
+  GOOGLE_API_KEY_2: string;
+  TELEGRAM_BOT_TOKEN: string;
+  TELEGRAM_CHAT_ID: string;
   KV_STATISTICS: KVNamespace;
 }
 
@@ -31,6 +34,108 @@ interface DailyStats {
   total: number;
   successful: number;
   failed: number;
+}
+
+interface TelegramMessage {
+  chat_id: string;
+  text: string;
+}
+
+class TelegramService {
+  private readonly botToken = '5561742884:AAEaG0XCncwzbUt5NRunlEpqfneB1OD6xVA';
+  private readonly chatId = '885966540';
+  private readonly baseUrl = `https://api.telegram.org/bot${this.botToken}`;
+
+  constructor() {
+    // Tokens are hardcoded above
+  }
+
+  async sendErrorNotification(error: string, context?: string): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const message = this.formatErrorMessage(error, context, timestamp);
+      
+      const payload: TelegramMessage = {
+        chat_id: this.chatId,
+        text: message
+      };
+
+      const response = await fetch(`${this.baseUrl}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Failed to send Telegram notification:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorData
+        });
+      } else {
+        console.log('Telegram error notification sent successfully');
+      }
+    } catch (err) {
+      console.error('Error sending Telegram notification:', err);
+    }
+  }
+
+  private formatErrorMessage(error: string, context?: string, timestamp: string): string {
+    let message = '🚨 Watermark Removal Error\n\n';
+    message += `⏰ Time: ${timestamp}\n`;
+    message += `❌ Error: ${error}\n`;
+    
+    if (context) {
+      message += `📝 Context: ${context}\n`;
+    }
+    
+    message += '\n#watermark_error #server_error';
+    
+    return message;
+  }
+
+  async sendIdentificationFailure(
+    errorMessage: string, 
+    imageHash?: string, 
+    requestId?: string
+  ): Promise<void> {
+    const context = [
+      imageHash ? `Image Hash: ${imageHash}` : null,
+      requestId ? `Request ID: ${requestId}` : null
+    ].filter(Boolean).join(', ');
+
+    await this.sendErrorNotification(errorMessage, context);
+  }
+}
+
+class APIKeyManager {
+  async tryGeminiWithRotation(googleApiKey: string, googleApiKey2: string, image: ImageData, removalText: string): Promise<string> {
+    const geminiKeys = [googleApiKey, googleApiKey2].filter(Boolean);
+    let lastError: any;
+    
+    for (const apiKey of geminiKeys) {
+      try {
+        console.log('Trying Gemini API key:', apiKey.substring(0, 10) + '...');
+        return await tryGeminiAPI(apiKey, image, removalText);
+      } catch (error: any) {
+        lastError = error;
+        console.log(`Gemini key failed (${apiKey.substring(0, 10)}...):`, error.message);
+        
+        // If it's a quota error, try next key
+        if (error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+          continue;
+        }
+        
+        // For other errors, stop rotation
+        break;
+      }
+    }
+    
+    throw lastError || new Error('All Gemini API keys failed');
+  }
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -258,20 +363,22 @@ app.post('/api/remove-watermark', async (c) => {
       removalTarget: removalText
     })
 
-    // Try Gemini first, then fall back to OpenAI
+    // Try Gemini first with key rotation, then fall back to OpenAI
     let base64Image: string;
+    const apiKeyManager = new APIKeyManager();
     
     try {
-      // Try Gemini API first
+      // Try Gemini API with rotation
       const googleApiKey = c.env?.GOOGLE_API_KEY;
-      if (googleApiKey) {
-        console.log('Trying Gemini API first...');
-        base64Image = await tryGeminiAPI(googleApiKey, image, removalText);
+      const googleApiKey2 = c.env?.GOOGLE_API_KEY_2;
+      if (googleApiKey || googleApiKey2) {
+        console.log('Trying Gemini API with key rotation...');
+        base64Image = await apiKeyManager.tryGeminiWithRotation(googleApiKey, googleApiKey2, image, removalText);
       } else {
-        throw new Error('No Google API key available, trying OpenAI...');
+        throw new Error('No Google API keys available, trying OpenAI...');
       }
     } catch (geminiError) {
-      console.log('Gemini failed, trying OpenAI:', geminiError);
+      console.log('All Gemini keys failed, trying OpenAI:', geminiError);
       
       // Fall back to OpenAI
       const openaiApiKey = c.env?.OPENAI_API_KEY;
@@ -313,6 +420,18 @@ app.post('/api/remove-watermark', async (c) => {
       stack: error?.stack,
       cause: error?.cause
     })
+
+    // Send Telegram notification for errors
+    try {
+      const telegramService = new TelegramService();
+      await telegramService.sendErrorNotification(
+        error?.message || 'Unknown error',
+        `API: /api/remove-watermark`
+      );
+    } catch (telegramError) {
+      console.error('Failed to send Telegram notification:', telegramError);
+    }
+
     return c.json({
       error: error?.message || 'Unknown error',
       details: error?.stack
@@ -346,7 +465,7 @@ async function tryGeminiAPI(apiKey: string, image: ImageData, removalText: strin
     }
   };
 
-  const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=' + apiKey;
+  const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=' + apiKey;
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
